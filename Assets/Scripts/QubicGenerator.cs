@@ -82,8 +82,7 @@ public class QubicGenerator : MonoBehaviour {
                     if (z - 1 < 0 || dots[x, y, z-1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x, y, z), new Vector3Int(x, y+1, z), new Vector3Int(x+1, y+1, z),
-                            new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z), 
-                            new Vector3Int(x, y, z)
+                            new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z), new Vector3Int(x, y, z)
                         });
                     }
                     if (z + 1 >= size || dots[x, y, z+1] == Side.Outside) {
