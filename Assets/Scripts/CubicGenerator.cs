@@ -2,24 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Side {
-    Inside = 0,
-    Outside = 1
-}
+public class CubicGenerator : MonoBehaviour {
+    public enum Side { Inside, Outside }
 
-public class QubicGenerator : MonoBehaviour {
     private Mesh mesh;
 
     private Side[,,] dots;
+    private readonly double dotsScale = 3.0;
+    private readonly double dotsSep = 0.5;
 
-    private int gSize = 2;
-    private int size = 10;
+    private readonly int gSize = 2;
+    private readonly int size = 20;
 
     void Start() {
         mesh = new Mesh();
-        gameObject.AddComponent<MeshFilter>();
-        gameObject.AddComponent<MeshRenderer>();
+
+        if (GetComponent<MeshFilter>() == null)
+            gameObject.AddComponent<MeshFilter>();
+        if (GetComponent<MeshRenderer>() == null)
+            gameObject.AddComponent<MeshRenderer>();
+
         GetComponent<MeshFilter>().mesh = mesh;
+        GetComponent<MeshRenderer>().material.shader = Shader.Find("Diffuse");
+        GetComponent<MeshRenderer>().material.color = Color.yellow;
 
         GenerateDots();
         GenerateCubes();
@@ -30,7 +35,13 @@ public class QubicGenerator : MonoBehaviour {
         for (int y = 0; y < size; y++) {
             for (int z = 0; z < size; z++) {
                 for (int x = 0; x < size; x++) {
-                    dots[x, y, z] = (Random.value < .5f) ? Side.Inside : Side.Outside;
+                    double scale = ((double)gSize / size) * dotsScale;
+                    double coorX = ((double)x + 0.5) * scale;
+                    double coorY = ((double)y + 0.5) * scale;
+                    double coorZ = ((double)z + 0.5) * scale;
+
+                    dots[x, y, z] = (Perlin.perlin(coorX, coorY, coorZ) < dotsSep)
+                        ? Side.Inside : Side.Outside;
                 }
             }
         }
@@ -81,8 +92,8 @@ public class QubicGenerator : MonoBehaviour {
                     }
                     if (z - 1 < 0 || dots[x, y, z-1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x, y, z), new Vector3Int(x, y+1, z), new Vector3Int(x+1, y+1, z),
-                            new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z), new Vector3Int(x, y, z)
+                            new Vector3Int(x+1, y, z), new Vector3Int(x, y, z), new Vector3Int(x, y+1, z),
+                            new Vector3Int(x, y+1, z), new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z),
                         });
                     }
                     if (z + 1 >= size || dots[x, y, z+1] == Side.Outside) {
@@ -102,11 +113,14 @@ public class QubicGenerator : MonoBehaviour {
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
+
+        mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
     }
 
     void OnDrawGizmos() {
-        Gizmos.color = Color.black;
+        Gizmos.color = Color.grey;
         Gizmos.DrawWireMesh(mesh);
     }
 }
