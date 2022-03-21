@@ -11,6 +11,7 @@ public class CubicGenerator : MonoBehaviour {
     private readonly double dotsScale = 3.0;
     private readonly double dotsSep = 0.5;
 
+    private readonly Vector3 trans = new Vector3(0, 0, 0);
     private readonly int gSize = 2;
     private readonly int size = 20;
 
@@ -31,17 +32,23 @@ public class CubicGenerator : MonoBehaviour {
     }
 
     void GenerateDots() {
-        dots = new Side[size, size, size];
-        for (int y = 0; y < size; y++) {
-            for (int z = 0; z < size; z++) {
-                for (int x = 0; x < size; x++) {
-                    double scale = ((double)gSize / size) * dotsScale;
-                    double coorX = ((double)x + 0.5) * scale;
-                    double coorY = ((double)y + 0.5) * scale;
-                    double coorZ = ((double)z + 0.5) * scale;
+        dots = new Side[size + 2, size + 2, size + 2];
+        for (int y = -1; y <= size; y++) {
+            for (int z = -1; z <= size; z++) {
+                for (int x = -1; x <= size; x++) {
+                    double unit = ((double)gSize / size);
+                    double coorX = (((double)x + 0.5) * unit + trans.x) * dotsScale;
+                    double coorY = (((double)y + 0.5) * unit + trans.y) * dotsScale;
+                    double coorZ = (((double)z + 0.5) * unit + trans.z) * dotsScale;
 
-                    dots[x, y, z] = (Perlin.perlin(coorX, coorY, coorZ) < dotsSep)
+                    dots[x + 1, y + 1, z + 1] 
+                        = (Perlin.perlin(coorX, coorY, coorZ) < dotsSep)
                         ? Side.Inside : Side.Outside;
+
+                    // closed cube for debugging only
+                    // if (x == -1 || y == -1 || z == -1 || x == size || y == size || z == size) {
+                    //     dots[x+1, y+1, z+1] = Side.Outside;
+                    // }
                 }
             }
         }
@@ -53,7 +60,7 @@ public class CubicGenerator : MonoBehaviour {
         for (int it = 0, y = 0; y <= size; y++) {
             for (int z = 0; z <= size; z++) {
                 for (int x = 0; x <= size; x++) {
-                    vertices[it] = new Vector3(x, y, z) * unit;
+                    vertices[it] = new Vector3(x, y, z) * unit + trans;
                     it++;
                 }
             }
@@ -63,40 +70,40 @@ public class CubicGenerator : MonoBehaviour {
         for (int y = 0; y < size; y++) {
             for (int z = 0; z < size; z++) {
                 for (int x = 0; x < size; x++) {
-                    if (dots[x, y, z] == Side.Outside)
+                    if (dots[x + 1, y + 1, z + 1] == Side.Outside)
                         continue;
 
-                    if (x - 1 < 0 || dots[x-1, y, z] == Side.Outside) {
+                    if (dots[x, y + 1, z + 1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x, y, z), new Vector3Int(x, y, z+1), new Vector3Int(x, y+1, z+1),
                             new Vector3Int(x, y+1, z+1), new Vector3Int(x, y+1, z), new Vector3Int(x, y, z)
                         });
                     }
-                    if (x + 1 >= size || dots[x+1, y, z] == Side.Outside) {
+                    if (dots[x + 2, y + 1, z + 1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x+1, y, z+1), new Vector3Int(x+1, y, z), new Vector3Int(x+1, y+1, z),
                             new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y+1, z+1), new Vector3Int(x+1, y, z+1)
                         });
                     }
-                    if (y - 1 < 0 || dots[x, y-1, z] == Side.Outside) {
+                    if (dots[x + 1, y, z + 1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x, y, z), new Vector3Int(x+1, y, z), new Vector3Int(x+1, y, z+1),
                             new Vector3Int(x+1, y, z+1), new Vector3Int(x, y, z+1), new Vector3Int(x, y, z)
                         });
                     }
-                    if (y + 1 >= size || dots[x, y+1, z] == Side.Outside) {
+                    if (dots[x + 1, y + 2, z + 1] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x, y+1, z+1), new Vector3Int(x+1, y+1, z+1), new Vector3Int(x+1, y+1, z),
                             new Vector3Int(x+1, y+1, z), new Vector3Int(x, y+1, z), new Vector3Int(x, y+1, z+1)
                         });
                     }
-                    if (z - 1 < 0 || dots[x, y, z-1] == Side.Outside) {
+                    if (dots[x + 1, y + 1, z] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x+1, y, z), new Vector3Int(x, y, z), new Vector3Int(x, y+1, z),
                             new Vector3Int(x, y+1, z), new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z),
                         });
                     }
-                    if (z + 1 >= size || dots[x, y, z+1] == Side.Outside) {
+                    if (dots[x + 1, y + 1, z + 2] == Side.Outside) {
                         tris.AddRange(new Vector3Int[] {
                             new Vector3Int(x, y, z+1), new Vector3Int(x+1, y, z+1), new Vector3Int(x+1, y+1, z+1),
                             new Vector3Int(x+1, y+1, z+1), new Vector3Int(x, y+1, z+1), new Vector3Int(x, y, z+1)
