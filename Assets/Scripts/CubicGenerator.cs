@@ -6,16 +6,16 @@ public class CubicGenerator : MonoBehaviour {
     public enum Side { Inside, Outside }
 
     private Mesh mesh;
-
     private Side[,,] dots;
+    private Vector3 trans = new Vector3(0, 0, 0);
+
     private readonly double dotsScale = 3.0;
     private readonly double dotsSep = 0.5;
 
-    private readonly Vector3 trans = new Vector3(0, 0, 0);
-    private readonly int gSize = 2;
-    private readonly int size = 20;
+    public static readonly int gSize = 2;
+    public static readonly int size = 20;
 
-    void Start() {
+    public void Generate() {
         mesh = new Mesh();
 
         if (GetComponent<MeshFilter>() == null)
@@ -26,7 +26,7 @@ public class CubicGenerator : MonoBehaviour {
         GetComponent<MeshFilter>().mesh = mesh;
         GetComponent<MeshRenderer>().material.shader = Shader.Find("Diffuse");
         GetComponent<MeshRenderer>().material.color = Color.yellow;
-
+        
         GenerateDots();
         GenerateCubes();
         GetComponent<MeshCollider>().sharedMesh = mesh;
@@ -127,6 +127,10 @@ public class CubicGenerator : MonoBehaviour {
         mesh.RecalculateTangents();
     }
 
+    public void SetTrans(int x, int y, int z) {
+        trans = new Vector3(x, y, z);
+    }
+    
     void OnDrawGizmos() {
         Gizmos.color = Color.grey;
         Gizmos.DrawWireMesh(mesh);
