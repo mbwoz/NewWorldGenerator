@@ -28,6 +28,7 @@ public class CubicGenerator : MonoBehaviour {
 
         GenerateDots();
         GenerateCubes();
+        GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
     void GenerateDots() {
