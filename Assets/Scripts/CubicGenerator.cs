@@ -59,18 +59,8 @@ public class CubicGenerator : MonoBehaviour {
     }
 
     private void GenerateCubes() {
-        float unit = (float)gSize / size;
-        Vector3[] vertices = new Vector3[(size + 1) * (size + 1) * (size + 1)];
-        for (int it = 0, y = 0; y <= size; y++) {
-            for (int z = 0; z <= size; z++) {
-                for (int x = 0; x <= size; x++) {
-                    vertices[it] = new Vector3(x, y, z) * unit + trans;
-                    it++;
-                }
-            }
-        }
+        List<Vector3> vertices = new List<Vector3>();
 
-        List<Vector3Int> tris = new List<Vector3Int>();
         for (int y = 0; y < size; y++) {
             for (int z = 0; z < size; z++) {
                 for (int x = 0; x < size; x++) {
@@ -78,53 +68,61 @@ public class CubicGenerator : MonoBehaviour {
                         continue;
 
                     if (dots[x, y + 1, z + 1] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x, y, z), new Vector3Int(x, y, z+1), new Vector3Int(x, y+1, z+1),
-                            new Vector3Int(x, y+1, z+1), new Vector3Int(x, y+1, z), new Vector3Int(x, y, z)
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x, y, z), new Vector3(x, y, z+1),
+                            new Vector3(x, y+1, z+1), new Vector3(x, y+1, z)
                         });
                     }
                     if (dots[x + 2, y + 1, z + 1] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x+1, y, z+1), new Vector3Int(x+1, y, z), new Vector3Int(x+1, y+1, z),
-                            new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y+1, z+1), new Vector3Int(x+1, y, z+1)
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x+1, y, z+1), new Vector3(x+1, y, z),
+                            new Vector3(x+1, y+1, z), new Vector3(x+1, y+1, z+1)
                         });
                     }
                     if (dots[x + 1, y, z + 1] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x, y, z), new Vector3Int(x+1, y, z), new Vector3Int(x+1, y, z+1),
-                            new Vector3Int(x+1, y, z+1), new Vector3Int(x, y, z+1), new Vector3Int(x, y, z)
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x, y, z), new Vector3(x+1, y, z),
+                            new Vector3(x+1, y, z+1), new Vector3(x, y, z+1)
                         });
                     }
                     if (dots[x + 1, y + 2, z + 1] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x, y+1, z+1), new Vector3Int(x+1, y+1, z+1), new Vector3Int(x+1, y+1, z),
-                            new Vector3Int(x+1, y+1, z), new Vector3Int(x, y+1, z), new Vector3Int(x, y+1, z+1)
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x, y+1, z+1), new Vector3(x+1, y+1, z+1),
+                            new Vector3(x+1, y+1, z), new Vector3(x, y+1, z)
                         });
                     }
                     if (dots[x + 1, y + 1, z] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x+1, y, z), new Vector3Int(x, y, z), new Vector3Int(x, y+1, z),
-                            new Vector3Int(x, y+1, z), new Vector3Int(x+1, y+1, z), new Vector3Int(x+1, y, z),
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x+1, y, z), new Vector3(x, y, z),
+                            new Vector3(x, y+1, z), new Vector3(x+1, y+1, z)
                         });
                     }
                     if (dots[x + 1, y + 1, z + 2] == Side.Outside) {
-                        tris.AddRange(new Vector3Int[] {
-                            new Vector3Int(x, y, z+1), new Vector3Int(x+1, y, z+1), new Vector3Int(x+1, y+1, z+1),
-                            new Vector3Int(x+1, y+1, z+1), new Vector3Int(x, y+1, z+1), new Vector3Int(x, y, z+1)
+                        vertices.AddRange(new Vector3[] {
+                            new Vector3(x, y, z+1), new Vector3(x+1, y, z+1),
+                            new Vector3(x+1, y+1, z+1), new Vector3(x, y+1, z+1)
                         });
                     }
                 }
             }
         }
 
-        int[] triangles = new int[tris.Count];
-        for (int it = 0; it < tris.Count; it++) {
-            triangles[it] = tris[it].x + (size + 1) * tris[it].z + (size + 1) * (size + 1) * tris[it].y;
+        float unit = (float)gSize / size;
+        for (int it = 0; it < vertices.Count; it++) {
+            vertices[it] = vertices[it] * unit + trans;
+        }
+
+        List<int> triangles = new List<int>();
+
+        for (int it = 0; it < vertices.Count; it += 4) {
+            triangles.AddRange(new int[] {
+                it, it + 1, it + 2, it + 2, it + 3, it
+            });
         }
 
         mesh.Clear();
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
