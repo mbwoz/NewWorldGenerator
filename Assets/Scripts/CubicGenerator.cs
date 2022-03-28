@@ -3,36 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CubicGenerator : MonoBehaviour {
+
     public enum Side { Inside, Outside }
-
-    private Mesh mesh;
-    private Side[,,] dots;
-    private Vector3 trans = new Vector3(0, 0, 0);
-
-    private readonly double dotsScale = 3.0;
-    private readonly double dotsSep = 0.5;
 
     public static readonly int gSize = 2;
     public static readonly int size = 20;
+    public Vector3 trans { get; set; } = new Vector3(0, 0, 0);
+
+    private Mesh mesh;
+
+    private Side[,,] dots;
+    private readonly double dotsScale = 3.0;
+    private readonly double dotsSep = 0.5;
 
     public void Generate() {
         mesh = new Mesh();
 
-        if (GetComponent<MeshFilter>() == null)
-            gameObject.AddComponent<MeshFilter>();
-        if (GetComponent<MeshRenderer>() == null)
-            gameObject.AddComponent<MeshRenderer>();
-
-        GetComponent<MeshFilter>().mesh = mesh;
-        GetComponent<MeshRenderer>().material.shader = Shader.Find("Diffuse");
-        GetComponent<MeshRenderer>().material.color = Color.yellow;
-        
         GenerateDots();
         GenerateCubes();
-        GetComponent<MeshCollider>().sharedMesh = mesh;
+
+        if (gameObject.GetComponent<MeshFilter>() == null)
+            gameObject.AddComponent<MeshFilter>();
+        if (gameObject.GetComponent<MeshRenderer>() == null)
+            gameObject.AddComponent<MeshRenderer>();
+        if (gameObject.GetComponent<MeshCollider>() == null)
+            gameObject.AddComponent<MeshCollider>();
+
+        gameObject.GetComponent<MeshFilter>().mesh = mesh;
+        gameObject.GetComponent<MeshRenderer>().material.shader = Shader.Find("Diffuse");
+        gameObject.GetComponent<MeshRenderer>().material.color = Color.yellow;
+        gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
-    void GenerateDots() {
+    private void GenerateDots() {
         dots = new Side[size + 2, size + 2, size + 2];
         for (int y = -1; y <= size; y++) {
             for (int z = -1; z <= size; z++) {
@@ -55,7 +58,7 @@ public class CubicGenerator : MonoBehaviour {
         }
     }
 
-    void GenerateCubes() {
+    private void GenerateCubes() {
         float unit = (float)gSize / size;
         Vector3[] vertices = new Vector3[(size + 1) * (size + 1) * (size + 1)];
         for (int it = 0, y = 0; y <= size; y++) {
@@ -113,6 +116,7 @@ public class CubicGenerator : MonoBehaviour {
                 }
             }
         }
+
         int[] triangles = new int[tris.Count];
         for (int it = 0; it < tris.Count; it++) {
             triangles[it] = tris[it].x + (size + 1) * tris[it].z + (size + 1) * (size + 1) * tris[it].y;
@@ -126,12 +130,8 @@ public class CubicGenerator : MonoBehaviour {
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
     }
-
-    public void SetTrans(int x, int y, int z) {
-        trans = new Vector3(x, y, z);
-    }
     
-    void OnDrawGizmos() {
+    private void OnDrawGizmos() {
         Gizmos.color = Color.grey;
         Gizmos.DrawWireMesh(mesh);
     }

@@ -8,16 +8,16 @@ public class ChunkGenerator : MonoBehaviour {
 
     private Dictionary<Vector3Int, GameObject> activeCubes = new Dictionary<Vector3Int, GameObject>();
 
-    void Update() {
+    private void Update() {
         Generate();
     }
 
-    void Generate() {
+    private void Generate() {
         RemoveDistantChunks();
         AddNearChunks();
     }
 
-    void RemoveDistantChunks() {
+    private void RemoveDistantChunks() {
         Vector3Int currentChunk = GetCurrentChunk();
         List<Vector3Int> chunksToRemove = new List<Vector3Int>();
         
@@ -32,7 +32,7 @@ public class ChunkGenerator : MonoBehaviour {
         }
     }
 
-    void AddNearChunks() {
+    private void AddNearChunks() {
         Vector3Int currentChunk = GetCurrentChunk();
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
@@ -41,12 +41,11 @@ public class ChunkGenerator : MonoBehaviour {
                         currentChunk.x + dx,
                         currentChunk.y + dy,
                         currentChunk.z + dz);
+
                     if (!activeCubes.ContainsKey(pos)) {
-                        GameObject cube = new GameObject();
-                        cube.name = "cube";
+                        GameObject cube = new GameObject("cube");
                         CubicGenerator cubic = cube.AddComponent(typeof(CubicGenerator)) as CubicGenerator;
-                        int gSize = CubicGenerator.gSize;
-                        cubic.SetTrans(pos.x * gSize, pos.y * gSize, pos.z * gSize);
+                        cubic.trans = pos * CubicGenerator.gSize;
                         cubic.Generate();
                         activeCubes.Add(pos, cube);
                     }
@@ -55,7 +54,7 @@ public class ChunkGenerator : MonoBehaviour {
         }
     }
 
-    Vector3Int GetCurrentChunk() {
+    private Vector3Int GetCurrentChunk() {
         Vector3 position = transform.position;
         float[] pos = new float[3] {position.x, position.y, position.z};
         for (int i = 0; i < 3; i++)
@@ -67,7 +66,7 @@ public class ChunkGenerator : MonoBehaviour {
             (int)(pos[2] / CubicGenerator.gSize));
     }
 
-    int LayerOf(Vector3Int a, Vector3Int src) {
+    private int LayerOf(Vector3Int a, Vector3Int src) {
         return Mathf.Max(
             Mathf.Abs(a.x - src.x),
             Mathf.Abs(a.y - src.y),
