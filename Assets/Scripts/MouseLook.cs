@@ -9,14 +9,12 @@ public class MouseLook : MonoBehaviour
     private float _yRotationCamera = 0f;
 
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * Time.deltaTime;
         _yRotationCamera -= mouseY;
         _yRotationCamera = Mathf.Clamp(_yRotationCamera, -90f, 90f);

@@ -17,31 +17,26 @@ public class PlayerMovement : MonoBehaviour
     private float _scale = 0.03f;
     
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         rigidBody = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         HandleLook();
     }
     // Independent of frame rate of the game
-    void FixedUpdate()
-    {
+    void FixedUpdate() {
         HandleWalk();
         HandleJump();
     }
     
-    private void HandleLook()
-    {
+    private void HandleLook() {
         float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * Time.deltaTime;
         _xRotationCamera += mouseX;
         transform.localRotation = Quaternion.Euler(0f, _xRotationCamera, 0f);
     }
-    private void HandleWalk()
-    {
+    private void HandleWalk() {
         Vector3 inputVector = GetKeyboardInputVector();
         Vector3 flatVelocity = rigidBody.velocity;
         flatVelocity.y = 0;
@@ -58,8 +53,7 @@ public class PlayerMovement : MonoBehaviour
             rigidBody.AddForce(-flatVelocity, ForceMode.VelocityChange);
         }
     }
-    private void HandleJump()
-    {
+    private void HandleJump() {
         if(!IsGrounded())
         {
             return;
