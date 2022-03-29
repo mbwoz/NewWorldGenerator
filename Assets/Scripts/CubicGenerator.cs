@@ -6,15 +6,15 @@ public class CubicGenerator : MonoBehaviour {
 
     public enum Side { Inside, Outside }
 
-    public static readonly int gSize = 2;
+    public static readonly int gSize = 60;
     public static readonly int size = 20;
     public Vector3 trans { get; set; } = new Vector3(0, 0, 0);
 
     private Mesh mesh;
 
     private Side[,,] dots;
-    private readonly double dotsScale = 3.0;
-    private readonly double dotsSep = 0.5;
+    private readonly double dotsScale = 0.1;
+    private readonly double dotsSep = 0.4;
 
     public void Generate() {
         mesh = new Mesh();
