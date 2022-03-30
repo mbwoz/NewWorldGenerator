@@ -12,13 +12,13 @@ public class PlayerMovement : MonoBehaviour
     private float xRotationCamera = 0f;
     
     // keyboard movement parameters
-    private float _acceleration = 1f;
-    private float _maxNaturalSpeed = 10f;
+    private float _acceleration = 0.5f;
+    private float _maxNaturalSpeed = 5f;
     
     // jump and grounding related parameters
-    private float _yeet = 500f;
+    private float _yeet = 300f;
     private float _maxJumps = 3;
-    private float _scale = 1f;
+    private float _scale = 0.5f;
     private float _jumpCooldownLength = 0.2f;
     // in seconds
     private int jumpCounter;
@@ -45,6 +45,8 @@ public class PlayerMovement : MonoBehaviour
         capsuleCollider.height = 2f;
         // 1 corresponds to Y axis
         capsuleCollider.direction = 1;
+        capsuleCollider.material.staticFriction = 0;
+        capsuleCollider.material.dynamicFriction = 0;
     }
 
     // Update is called once per frame
@@ -68,6 +70,7 @@ public class PlayerMovement : MonoBehaviour
         xRotationCamera += mouseX;
         transform.localRotation = Quaternion.Euler(0f, xRotationCamera, 0f);
     }
+    
     private void HandleWalk() {
         Vector3 inputVector = GetKeyboardInputVector();
         Vector3 flatVelocity = rigidBody.velocity;
@@ -83,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
             rigidBody.AddForce(-flatVelocity, ForceMode.VelocityChange);
         }
     }
+    
     private void HandleJump() {
         if (jumpCooldown) return;
         if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F)) return;
