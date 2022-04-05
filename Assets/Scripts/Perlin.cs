@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Perlin {
-    private static readonly int[] perm;
+    public static readonly int[] permutation;
 
     // Hash lookup table by Ken Perlin.
-    private static readonly int[] permutation = { 151,160,137,91,90,15,
+    private static readonly int[] perm = { 151,160,137,91,90,15,
         131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
         190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
         88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
@@ -22,90 +22,9 @@ public class Perlin {
     };
     
     static Perlin() {
-        perm = new int[512];
+        permutation = new int[512];
         for (int i = 0; i < 512; i++) {
-            perm[i] = permutation[i % 256];
+            permutation[i] = perm[i % 256];
         }
-    }
-        
-    private static double lerp(double a, double b, double x) {
-        return a + x * (b - a);
-    }
-
-    // https://en.wikipedia.org/wiki/Smoothstep#Variations
-    private static double fade(double t) {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    // http://riven8192.blogspot.com/2010/08/calculate-perlinnoise-twice-as-fast.html
-    private static double grad(int hash, double x, double y, double z) {
-        switch(hash & 0xF) {
-            case 0x0: return  x + y;
-            case 0x1: return -x + y;
-            case 0x2: return  x - y;
-            case 0x3: return -x - y;
-            case 0x4: return  x + z;
-            case 0x5: return -x + z;
-            case 0x6: return  x - z;
-            case 0x7: return -x - z;
-            case 0x8: return  y + z;
-            case 0x9: return -y + z;
-            case 0xA: return  y - z;
-            case 0xB: return -y - z;
-            case 0xC: return  y + x;
-            case 0xD: return -y + z;
-            case 0xE: return  y - x;
-            case 0xF: return -y - z;
-            default: return 0; // never happens
-        }
-    }
-    
-    public static double perlin(double x, double y, double z) {
-        int xi = (int)x & 255;
-        int yi = (int)y & 255;
-        int zi = (int)z & 255;
-                                                                    
-        int[] verts = new int[8] {
-            perm[perm[perm[xi] + yi] + zi],
-            perm[perm[perm[xi + 1] + yi] + zi],
-            perm[perm[perm[xi] + yi + 1] + zi],
-            perm[perm[perm[xi + 1] + yi + 1] + zi],
-            perm[perm[perm[xi] + yi] + zi + 1],
-            perm[perm[perm[xi + 1] + yi] + zi + 1],
-            perm[perm[perm[xi] + yi + 1] + zi + 1],
-            perm[perm[perm[xi + 1] + yi + 1] + zi + 1]
-        };
-    
-        double xd = x - (int)x;
-        double yd = y - (int)y;
-        double zd = z - (int)z;
-        double xf = fade(xd);
-        double yf = fade(yd);
-        double zf = fade(zd);
-
-        double value = lerp(
-            lerp(
-                lerp(
-                    grad(verts[0], xd, yd, zd),
-                    grad(verts[1], xd - 1, yd, zd),
-                    xf), 
-                lerp(
-                    grad(verts[2], xd, yd - 1, zd),
-                    grad(verts[3], xd - 1, yd - 1, zd),
-                    xf),
-                yf),
-            lerp(
-                lerp(
-                    grad(verts[4], xd, yd, zd - 1),
-                    grad(verts[5], xd - 1, yd, zd - 1),
-                    xf),
-                lerp(
-                    grad(verts[6], xd, yd - 1, zd - 1),
-                    grad(verts[7], xd - 1, yd - 1, zd - 1),
-                    xf),
-                yf),
-            zf);
-
-        return (value + 1) / 2;
     }
 }

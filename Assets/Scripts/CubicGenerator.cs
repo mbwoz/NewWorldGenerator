@@ -3,23 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CubicGenerator : MonoBehaviour {
+    
+    public static readonly int size = 14;
 
-    public enum Side { Inside, Outside }
-
-    public static readonly int gSize = 20;
-    public static readonly int size = 20;
     public Vector3 trans { get; set; } = new Vector3(0, 0, 0);
+    public ComputeShader perlinComputeShader { get; set; }
 
     private Mesh mesh;
-
-    private Side[,,] dots;
-    private readonly double dotsScale = 0.3;
-    private readonly double dotsSep = 0.4;
+    private int[] dots;
 
     public void Generate() {
         mesh = new Mesh();
 
-        GenerateDots();
+        GPUDots();
         GenerateCubes();
 
         if (gameObject.GetComponent<MeshFilter>() == null)
@@ -35,69 +31,68 @@ public class CubicGenerator : MonoBehaviour {
         gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
-    private void GenerateDots() {
-        dots = new Side[size + 2, size + 2, size + 2];
-        for (int y = -1; y <= size; y++) {
-            for (int z = -1; z <= size; z++) {
-                for (int x = -1; x <= size; x++) {
-                    double unit = ((double)gSize / size);
-                    double coorX = (((double)x + 0.5) * unit + trans.x) * dotsScale;
-                    double coorY = (((double)y + 0.5) * unit + trans.y) * dotsScale;
-                    double coorZ = (((double)z + 0.5) * unit + trans.z) * dotsScale;
+    private void GPUDots() {
+        int kernelIndex = perlinComputeShader.FindKernel("CSPerlin");
 
-                    dots[x + 1, y + 1, z + 1] 
-                        = (Perlin.perlin(coorX, coorY, coorZ) < dotsSep)
-                        ? Side.Inside : Side.Outside;
+        dots = new int[(size + 2) * (size + 2) * (size + 2)];
+        ComputeBuffer dotsBuffer = new ComputeBuffer(dots.Length, sizeof(int));
+        dotsBuffer.SetData(dots);
+        perlinComputeShader.SetBuffer(kernelIndex, "dots", dotsBuffer);
 
-                    // closed cube for debugging only
-                    // if (x == -1 || y == -1 || z == -1 || x == size || y == size || z == size) {
-                    //     dots[x+1, y+1, z+1] = Side.Outside;
-                    // }
-                }
-            }
-        }
+        perlinComputeShader.SetInt("size", size + 2);
+        perlinComputeShader.SetVector("trans", trans);
+
+        perlinComputeShader.Dispatch(
+            kernelIndex,
+            Mathf.CeilToInt((float)(size + 2) / 8),
+            Mathf.CeilToInt((float)(size + 2) / 8),
+            size + 2);
+
+        dotsBuffer.GetData(dots);
+        dotsBuffer.Release();
     }
 
     private void GenerateCubes() {
         List<Vector3> vertices = new List<Vector3>();
 
-        for (int y = 0; y < size; y++) {
-            for (int z = 0; z < size; z++) {
+        for (int z = 0; z < size; z++) {
+            for (int y = 0; y < size; y++) {
                 for (int x = 0; x < size; x++) {
-                    if (dots[x + 1, y + 1, z + 1] == Side.Outside)
+                    int pos = x + 1 + (size + 2) * (y + 1 + (size + 2) * (z + 1));
+                    if (dots[pos] == 1)
                         continue;
 
-                    if (dots[x, y + 1, z + 1] == Side.Outside) {
+                    if (dots[pos - 1] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x, y, z), new Vector3(x, y, z+1),
                             new Vector3(x, y+1, z+1), new Vector3(x, y+1, z)
                         });
                     }
-                    if (dots[x + 2, y + 1, z + 1] == Side.Outside) {
+                    if (dots[pos + 1] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x+1, y, z+1), new Vector3(x+1, y, z),
                             new Vector3(x+1, y+1, z), new Vector3(x+1, y+1, z+1)
                         });
                     }
-                    if (dots[x + 1, y, z + 1] == Side.Outside) {
+                    if (dots[pos - (size + 2)] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x, y, z), new Vector3(x+1, y, z),
                             new Vector3(x+1, y, z+1), new Vector3(x, y, z+1)
                         });
                     }
-                    if (dots[x + 1, y + 2, z + 1] == Side.Outside) {
+                    if (dots[pos + (size + 2)] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x, y+1, z+1), new Vector3(x+1, y+1, z+1),
                             new Vector3(x+1, y+1, z), new Vector3(x, y+1, z)
                         });
                     }
-                    if (dots[x + 1, y + 1, z] == Side.Outside) {
+                    if (dots[pos - (size + 2) * (size + 2)] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x+1, y, z), new Vector3(x, y, z),
                             new Vector3(x, y+1, z), new Vector3(x+1, y+1, z)
                         });
                     }
-                    if (dots[x + 1, y + 1, z + 2] == Side.Outside) {
+                    if (dots[pos + (size + 2) * (size + 2)] == 1) {
                         vertices.AddRange(new Vector3[] {
                             new Vector3(x, y, z+1), new Vector3(x+1, y, z+1),
                             new Vector3(x+1, y+1, z+1), new Vector3(x, y+1, z+1)
@@ -107,9 +102,8 @@ public class CubicGenerator : MonoBehaviour {
             }
         }
 
-        float unit = (float)gSize / size;
         for (int it = 0; it < vertices.Count; it++) {
-            vertices[it] = vertices[it] * unit + trans;
+            vertices[it] += trans;
         }
 
         List<int> triangles = new List<int>();
