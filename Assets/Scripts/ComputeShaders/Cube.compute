@@ -1,13 +1,13 @@
 #pragma kernel Cube
 #include "./PerlinTable.compute"
-#include "./MarchTable.compute"
 
 static const int numThreads = 8;
 
-static const float dotsScale = 0.1f;
+static const float dotsScale = 0.17f;
 static const float dotsSep = 0.5f;
 
 AppendStructuredBuffer<int3> triangles;
+StructuredBuffer<int> triangulation;
 
 int size;
 float3 transition;
@@ -133,11 +133,11 @@ void Cube(int3 id : SV_DispatchThreadID) {
         mask |= ((perlinDot(pos * dotsScale)) << i);
     }
 
-    for (int j = 0; triangulation[mask][j] != -1; j += 3) {
+    for (int j = 0; triangulation[16 * mask + j] != -1; j += 3) {
         int3 t;
-        t.x = vertexOffset(id, triangulation[mask][j]);
-        t.y = vertexOffset(id, triangulation[mask][j + 1]);
-        t.z = vertexOffset(id, triangulation[mask][j + 2]);
+        t.x = vertexOffset(id, triangulation[16 * mask + j]);
+        t.y = vertexOffset(id, triangulation[16 * mask + j + 1]);
+        t.z = vertexOffset(id, triangulation[16 * mask + j + 2]);
         triangles.Append(t);
     }
 }
