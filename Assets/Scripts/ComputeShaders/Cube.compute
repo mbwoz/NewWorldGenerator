@@ -3,7 +3,7 @@
 
 static const int numThreads = 8;
 
-static const float dotsScale = 0.17f;
+static const float dotsScale = 0.2f;
 static const float dotsSep = 0.5f;
 
 AppendStructuredBuffer<int3> triangles;
