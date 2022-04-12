@@ -6,28 +6,43 @@ using UnityEngine;
 
 public class ChunkGenerator : MonoBehaviour {
 
-    struct Square {
-        public Vector3 a, b, c, d;
+    struct Triangle {
+        public int a, b, c;
     };
 
-    private readonly int numLayers = 3;
-    private readonly int size = 16;
+    private readonly int numLayers = 1;
+    private readonly int size = 8;
     private readonly int numThreads = 8;
+
+    private Vector3[] vertices;
 
     public ComputeShader cubeCS;
     private int kernelIndex;
-    private ComputeBuffer squaresBuffer;
-    private ComputeBuffer squaresCntBuffer;
+    private ComputeBuffer trianglesBuffer;
+    private ComputeBuffer trianglesCntBuffer;
 
     private Dictionary<Vector3Int, GameObject> activeCubes = new Dictionary<Vector3Int, GameObject>();
 
     private void Awake() {
-        int numSquares = size * size * size * 3;
-        squaresBuffer = new ComputeBuffer(numSquares, sizeof(float) * 3 * 4, ComputeBufferType.Append);
-        squaresCntBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+        int numTriangles = size * size * size * 5;
+        trianglesBuffer = new ComputeBuffer(numTriangles, sizeof(int) * 3, ComputeBufferType.Append);
+        trianglesCntBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 
         kernelIndex = cubeCS.FindKernel("Cube");
         cubeCS.SetInt("size", size);
+
+        vertices = new Vector3[3 * (size + 1) * (size + 1) * (size + 1)];
+        int it = 0;
+        for (int z = 0; z <= size; z++) {
+            for (int y = 0; y <= size; y++) {
+                for (int x = 0; x <= size; x++) {
+                    vertices[it] = new Vector3(x + 0.5f, y, z);
+                    vertices[it + 1] = new Vector3(x, y + 0.5f, z);
+                    vertices[it + 2] = new Vector3(x, y, z + 0.5f);
+                    it += 3;
+                }
+            }
+        }
     }
 
     private void Update() {
@@ -37,8 +52,8 @@ public class ChunkGenerator : MonoBehaviour {
     }
 
     private void OnDisable() {
-        squaresCntBuffer.Release();
-        squaresBuffer.Release();
+        trianglesCntBuffer.Release();
+        trianglesBuffer.Release();
     }
 
     private Vector3Int GetCurrentChunk() {
@@ -78,38 +93,26 @@ public class ChunkGenerator : MonoBehaviour {
         Chunk chunk = gameObj.AddComponent(typeof(Chunk)) as Chunk;
         chunk.SetUp();
 
-        squaresBuffer.SetCounterValue(0);
-        cubeCS.SetBuffer(kernelIndex, "squares", squaresBuffer);
+        trianglesBuffer.SetCounterValue(0);
+        cubeCS.SetBuffer(kernelIndex, "triangles", trianglesBuffer);
         cubeCS.SetVector("transition", (Vector3)position * size);
 
         int dispatchSize = Mathf.CeilToInt(size / numThreads);
         cubeCS.Dispatch(kernelIndex, dispatchSize, dispatchSize, dispatchSize);
 
-        ComputeBuffer.CopyCount(squaresBuffer, squaresCntBuffer, 0);
-        int[] squaresCountArr = { 0 };
-        squaresCntBuffer.GetData(squaresCountArr);
-        int numSquares = squaresCountArr[0];
+        ComputeBuffer.CopyCount(trianglesBuffer, trianglesCntBuffer, 0);
+        int[] trianglesCountArr = { 0 };
+        trianglesCntBuffer.GetData(trianglesCountArr);
+        int numTriangles = trianglesCountArr[0];
 
-        Square[] squares = new Square[numSquares];
-        squaresBuffer.GetData(squares, 0, 0, numSquares);
+        Triangle[] tris = new Triangle[numTriangles];
+        trianglesBuffer.GetData(tris, 0, 0, numTriangles);
 
-        Vector3[] vertices = new Vector3[4 * numSquares];
-        int[] triangles = new int[6 * numSquares];
-
-        for (int i = 0; i < numSquares; i++) {
-            vertices[4 * i] = squares[i].a;
-            vertices[4 * i + 1] = squares[i].b;
-            vertices[4 * i + 2] = squares[i].c;
-            vertices[4 * i + 3] = squares[i].d;
-        }
-
-        for (int i = 0; i < numSquares; i++) {
-            triangles[6 * i] = 4 * i;
-            triangles[6 * i + 1] = 4 * i + 1;
-            triangles[6 * i + 2] = 4 * i + 2;
-            triangles[6 * i + 3] = 4 * i + 2;
-            triangles[6 * i + 4] = 4 * i + 3;
-            triangles[6 * i + 5] = 4 * i;
+        int[] triangles = new int[3 * numTriangles];
+        for (int i = 0; i < numTriangles; i++) {
+            triangles[3 * i] = tris[i].a;
+            triangles[3 * i + 1] = tris[i].b;
+            triangles[3 * i + 2] = tris[i].c;
         }
 
         chunk.UpdateMesh(ref vertices, ref triangles);

@@ -61,7 +61,7 @@ public class PlayerMovement : MonoBehaviour
     }
     
     private void HandleAdjustments() {
-        Debug.Log(Input.mouseScrollDelta.y);
+        // Debug.Log(Input.mouseScrollDelta.y);
         _mouseSensitivity = Mathf.Max(_mouseSensitivity + Input.mouseScrollDelta.y * _scrollSensitivity, 0.1f);
     }
 

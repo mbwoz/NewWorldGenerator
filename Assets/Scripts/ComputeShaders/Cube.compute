@@ -1,20 +1,13 @@
 #pragma kernel Cube
 #include "./PerlinTable.compute"
+#include "./MarchTable.compute"
 
 static const int numThreads = 8;
 
-static const float dotsScale = 0.05f;
+static const float dotsScale = 0.1f;
 static const float dotsSep = 0.5f;
 
-struct Square {
-    float3 a, b, c, d;
-
-    void set(float3 pos) {
-        a = b = c = d = pos;
-    }
-};
-
-AppendStructuredBuffer<Square> squares;
+AppendStructuredBuffer<int3> triangles;
 
 int size;
 float3 transition;
@@ -30,7 +23,7 @@ float fade(float t) {
 
 // http://riven8192.blogspot.com/2010/08/calculate-perlinnoise-twice-as-fast.html
 float grad(int hash, float x, float y, float z) {
-    switch(hash & 0xF) {
+    switch (hash & 0xF) {
         case 0x0: return  x + y;
         case 0x1: return -x + y;
         case 0x2: return  x - y;
@@ -107,67 +100,44 @@ int perlinDot(float3 pos) {
     return ((value + 1) / 2 < dotsSep) ? 0 : 1;
 }
 
+int vertexOffset(int3 pos, int edge) {
+    int ax = size + 1;
+    int offset = 3 * ((pos.z * ax + pos.y) * ax + pos.x);
+
+    switch (edge) {
+        case 0: return offset;
+        case 1: return offset + 4;
+        case 2: return offset + 3 * ax;
+        case 3: return offset + 1;
+        case 4: return offset + 3 * ax * ax;
+        case 5: return offset + 3 * ax * ax + 4;
+        case 6: return offset + 3 * ax * ax + 3 * ax;
+        case 7: return offset + 3 * ax * ax + 1;
+        case 8: return offset + 2;
+        case 9: return offset + 5;
+        case 10: return offset + 3 * ax + 5;
+        case 11: return offset + 3 * ax + 2;
+        default: return -1; // never happens
+    }
+}
+
 [numthreads(numThreads, numThreads, numThreads)]
 void Cube(int3 id : SV_DispatchThreadID) {
     if (id.x >= size || id.y >= size || id.z >= size)
         return;
 
-    float3 center = float3(
-        (float)id.x + transition.x + 0.5,
-        (float)id.y + transition.y + 0.5,
-        (float)id.z + transition.z + 0.5
-    );
-    int4 perlin = int4(
-        perlinDot((center + float3(1, 0, 0)) * dotsScale),
-        perlinDot((center + float3(0, 1, 0)) * dotsScale),
-        perlinDot((center + float3(0, 0, 1)) * dotsScale),
-        perlinDot(center * dotsScale)
-    );
+    int mask = 0;
+    for (int i = 0; i < 8; i++) {
+        float3 pos = float3((i & 1), ((i >> 1) & 1), (i >> 2));
+        pos += transition + id;
+        mask |= ((perlinDot(pos * dotsScale)) << i);
+    }
 
-    Square sq;
-    if (perlin.w != perlin.x) {
-        sq.set(id + transition);
-        if (perlin.x == 0) {
-            sq.a += float3(1, 1, 0);
-            sq.b += float3(1, 1, 1);
-            sq.c += float3(1, 0, 1);
-            sq.d += float3(1, 0, 0);
-        } else {
-            sq.a += float3(1, 0, 0);
-            sq.b += float3(1, 0, 1);
-            sq.c += float3(1, 1, 1);
-            sq.d += float3(1, 1, 0);
-        }
-        squares.Append(sq);
-    }
-    if (perlin.w != perlin.y) {
-        sq.set(id + transition);
-        if (perlin.y == 0) {
-            sq.a += float3(0, 1, 0);
-            sq.b += float3(0, 1, 1);
-            sq.c += float3(1, 1, 1);
-            sq.d += float3(1, 1, 0);
-        } else {
-            sq.a += float3(1, 1, 0);
-            sq.b += float3(1, 1, 1);
-            sq.c += float3(0, 1, 1);
-            sq.d += float3(0, 1, 0);
-        }
-        squares.Append(sq);
-    }
-    if (perlin.w != perlin.z) {
-        sq.set(id + transition);
-        if (perlin.z == 0) {
-            sq.a += float3(1, 1, 1);
-            sq.b += float3(0, 1, 1);
-            sq.c += float3(0, 0, 1);
-            sq.d += float3(1, 0, 1);
-        } else {
-            sq.a += float3(1, 0, 1);
-            sq.b += float3(0, 0, 1);
-            sq.c += float3(0, 1, 1);
-            sq.d += float3(1, 1, 1);
-        }
-        squares.Append(sq);
+    for (int j = 0; triangulation[mask][j] != -1; j += 3) {
+        int3 t;
+        t.x = vertexOffset(id, triangulation[mask][j]);
+        t.y = vertexOffset(id, triangulation[mask][j + 1]);
+        t.z = vertexOffset(id, triangulation[mask][j + 2]);
+        triangles.Append(t);
     }
 }
