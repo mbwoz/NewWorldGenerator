@@ -14,6 +14,7 @@ public class ChunkGenerator : MonoBehaviour {
     private readonly int size = 16;
     private readonly int numThreads = 8;
 
+    public Material materialRef;
     public ComputeShader cubeCS;
     private int kernelIndex;
     private ComputeBuffer trianglesBuffer;
@@ -81,7 +82,7 @@ public class ChunkGenerator : MonoBehaviour {
     private void AddChunk(Vector3Int position) {
         GameObject gameObj = new GameObject("Chunk");
         Chunk chunk = gameObj.AddComponent(typeof(Chunk)) as Chunk;
-        chunk.SetUp();
+        chunk.SetUp(materialRef);
 
         trianglesBuffer.SetCounterValue(0);
         cubeCS.SetBuffer(kernelIndex, "triangles", trianglesBuffer);

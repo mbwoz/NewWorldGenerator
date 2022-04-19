@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
     private float _maxNaturalSpeed = 5f;
     
     // jump and grounding related parameters
-    private float _yeet = 300f;
+    private float _yeet = 1000f;
     private float _maxJumps = 3;
     private float _scale = 0.5f;
     private float _jumpCooldownLength = 0.2f;
