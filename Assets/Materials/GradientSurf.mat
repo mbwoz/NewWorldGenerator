@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Gradient
-  m_Shader: {fileID: 4800000, guid: aa0d9ab9d2446949aa86a42735811606, type: 3}
+  m_Name: GradientSurf
+  m_Shader: {fileID: 4800000, guid: 6646d446434847b08440fc3416c15de8, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -56,6 +56,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _Blue: 0.8
+    - _BlueIntensity: 0.8
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -66,7 +68,11 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _Offset: 0
+    - _Offst: 0
     - _Parallax: 0.02
+    - _Phase: 0.08
+    - _ShadingIntensity: 0.25
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1

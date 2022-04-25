@@ -41,7 +41,7 @@ Shader "Custom/Gradient"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float4 wave = float4(sin(0.08 * i.worldPos.y), cos(0.1 * i.worldPos.y), 1, 1);
+                float4 wave = float4(sin(0.08 * i.worldPos.y), cos(0.08 * i.worldPos.y), 1, 1);
                 float4 shade = float4(i.normal, 1);
                 return 0.6 * wave + 0.4 * (wave * shade);
             }
