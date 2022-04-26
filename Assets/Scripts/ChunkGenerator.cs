@@ -106,11 +106,31 @@ public class ChunkGenerator : MonoBehaviour {
             vertices[3 * i + 2] = tris[i].c;
         }
 
-        int[] triangles = new int[3 * numTriangles];
-        for (int i = 0; i < 3 * numTriangles; i++)
+        int[] triangles = new int[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
             triangles[i] = i;
 
-        chunk.UpdateMesh(ref vertices, ref triangles);
+        Vector2[] uvs = new Vector2[vertices.Length];
+        for (int i = 0; i < triangles.Length; i += 3) {
+            Vector3 normal = Vector3.Cross(
+                vertices[i + 1] - vertices[i],
+                vertices[i + 2] - vertices[i]
+            ).normalized;
+
+            Vector3 vDir = new Vector3(0, 0, 1);
+            if (Mathf.Abs(normal.y) < 0.99f)
+                vDir = (new Vector3(0, 1, 0) - normal.y * normal).normalized;
+            Vector3 uDir = Vector3.Cross(normal, vDir).normalized;
+
+            for (int j = 0; j < 3; j++) {
+                uvs[i + j] = new Vector2(
+                    Vector3.Dot(vertices[i + j], uDir),
+                    Vector3.Dot(vertices[i + j], vDir)
+                );
+            }
+        }
+
+        chunk.UpdateMesh(ref vertices, ref triangles, ref uvs);
         activeCubes.Add(position, gameObj);
     }
 
