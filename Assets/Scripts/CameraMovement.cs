@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
 
-public class CameraMovement : MonoBehaviour
-{
+public class CameraMovement : MonoBehaviour {
     public float _mouseSensitivity = 100f;
 
     private float _xRotationCamera = 0f;
@@ -14,28 +13,22 @@ public class CameraMovement : MonoBehaviour
     private float _scale = 0.05f;
 
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-        {
+    void Update() {
+        if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) {
             transform.position += transform.right*_speed;
         }
-        if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-        {
+        if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) {
             transform.position -= transform.right*_speed;
         }
-        if(Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
-        {
+        if(Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) {
             transform.position -= transform.forward*_speed;
         }
-        if(Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-        {
+        if(Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) {
             transform.position += transform.forward*_speed;
         }
         
