@@ -34,8 +34,6 @@ public class Chunk : MonoBehaviour {
             meshCollider.sharedMesh = mesh;
 
         material = materialRef;
-        //meshRenderer.material.shader = Shader.Find("Diffuse");
-        //meshRenderer.material.color = Color.yellow;
     }
 
     public void UpdateMesh(ref Vector3[] vertices, ref int[] triangles) {

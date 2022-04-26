@@ -7,7 +7,7 @@ using UnityEngine;
 public class ChunkGenerator : MonoBehaviour {
 
     struct Triangle {
-        public int a, b, c;
+        public Vector3 a, b, c;
     };
 
     private readonly int numLayers = 2;
@@ -25,7 +25,7 @@ public class ChunkGenerator : MonoBehaviour {
 
     private void Awake() {
         int numTriangles = size * size * size * 5;
-        trianglesBuffer = new ComputeBuffer(numTriangles, sizeof(int) * 3, ComputeBufferType.Append);
+        trianglesBuffer = new ComputeBuffer(numTriangles, sizeof(float) * 3 * 3, ComputeBufferType.Append);
         trianglesCntBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
         triangulationBuffer = new ComputeBuffer(256 * 16, sizeof(int));
 
@@ -99,40 +99,16 @@ public class ChunkGenerator : MonoBehaviour {
         Triangle[] tris = new Triangle[numTriangles];
         trianglesBuffer.GetData(tris, 0, 0, numTriangles);
 
-        int[] triangles = new int[3 * numTriangles];
-        for (int i = 0; i < numTriangles; i++) {
-            triangles[3 * i] = tris[i].a;
-            triangles[3 * i + 1] = tris[i].b;
-            triangles[3 * i + 2] = tris[i].c;
-        }
-
-        // // setup for common vertices (main)
-        // Vector3[] vertices = new Vector3[3 * (size + 1) * (size + 1) * (size + 1)];
-        // int it = 0;
-        // for (int z = 0; z <= size; z++) {
-        //     for (int y = 0; y <= size; y++) {
-        //         for (int x = 0; x <= size; x++) {
-        //             vertices[it] = position * size + new Vector3(x + 0.5f, y, z);
-        //             vertices[it + 1] = position * size + new Vector3(x, y + 0.5f, z);
-        //             vertices[it + 2] = position * size + new Vector3(x, y, z + 0.5f);
-        //             it += 3;
-        //         }
-        //     }
-        // }
-
-        // // setup for separate vertices (bonus)
         Vector3[] vertices = new Vector3[3 * numTriangles];
-        for (int i = 0; i < 3 * numTriangles; i++) {
-            int dir = triangles[i] % 3;
-            int t = triangles[i] / 3;
-            float x = (t % (size + 1)) + ((dir == 0) ? 0.5f : 0) + (position.x * size);
-            t /= (size + 1);
-            float y = (t % (size + 1)) + ((dir == 1) ? 0.5f : 0) + (position.y * size);
-            t /= (size + 1);
-            float z = t + ((dir == 2) ? 0.5f : 0) + (position.z * size);
-            vertices[i] = new Vector3(x, y, z);
-            triangles[i] = i;
+        for (int i = 0; i < numTriangles; i++) {
+            vertices[3 * i] = tris[i].a;
+            vertices[3 * i + 1] = tris[i].b;
+            vertices[3 * i + 2] = tris[i].c;
         }
+
+        int[] triangles = new int[3 * numTriangles];
+        for (int i = 0; i < 3 * numTriangles; i++)
+            triangles[i] = i;
 
         chunk.UpdateMesh(ref vertices, ref triangles);
         activeCubes.Add(position, gameObj);

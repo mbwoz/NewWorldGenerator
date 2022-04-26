@@ -6,7 +6,11 @@ static const int numThreads = 8;
 static const float dotsScale = 0.1f;
 static const float dotsSep = 0.5f;
 
-AppendStructuredBuffer<int3> triangles;
+struct Triangle {
+    float3 a, b, c;
+};
+
+AppendStructuredBuffer<Triangle> triangles;
 StructuredBuffer<int> triangulation;
 
 int size;
@@ -100,23 +104,20 @@ int perlinDot(float3 pos) {
     return ((value + 1) / 2 < dotsSep) ? 0 : 1;
 }
 
-int vertexOffset(int3 pos, int edge) {
-    int ax = size + 1;
-    int offset = 3 * ((pos.z * ax + pos.y) * ax + pos.x);
-
+float3 vertexOffset(int edge) {
     switch (edge) {
-        case 0: return offset;
-        case 1: return offset + 4;
-        case 2: return offset + 3 * ax;
-        case 3: return offset + 1;
-        case 4: return offset + 3 * ax * ax;
-        case 5: return offset + 3 * ax * ax + 4;
-        case 6: return offset + 3 * ax * ax + 3 * ax;
-        case 7: return offset + 3 * ax * ax + 1;
-        case 8: return offset + 2;
-        case 9: return offset + 5;
-        case 10: return offset + 3 * ax + 5;
-        case 11: return offset + 3 * ax + 2;
+        case 0: return float3(0.5, 0, 0);
+        case 1: return float3(1, 0.5, 0);
+        case 2: return float3(0.5, 1, 0);
+        case 3: return float3(0, 0.5, 0);
+        case 4: return float3(0.5, 0, 1);
+        case 5: return float3(1, 0.5, 1);
+        case 6: return float3(0.5, 1, 1);
+        case 7: return float3(0, 0.5, 1);
+        case 8: return float3(0, 0, 0.5);
+        case 9: return float3(1, 0, 0.5);
+        case 10: return float3(1, 1, 0.5);
+        case 11: return float3(0, 1, 0.5);
         default: return -1; // never happens
     }
 }
@@ -134,10 +135,10 @@ void Cube(int3 id : SV_DispatchThreadID) {
     }
 
     for (int j = 0; triangulation[16 * mask + j] != -1; j += 3) {
-        int3 t;
-        t.x = vertexOffset(id, triangulation[16 * mask + j]);
-        t.y = vertexOffset(id, triangulation[16 * mask + j + 1]);
-        t.z = vertexOffset(id, triangulation[16 * mask + j + 2]);
+        Triangle t;
+        t.a = transition + id + vertexOffset(triangulation[16 * mask + j]);
+        t.b = transition + id + vertexOffset(triangulation[16 * mask + j + 1]);
+        t.c = transition + id + vertexOffset(triangulation[16 * mask + j + 2]);
         triangles.Append(t);
     }
 }
