@@ -1,0 +1,92 @@
+#include "./PerlinTable.compute"
+
+static const float dotsScale = 0.1f;
+static const float dotsSep = 0.5f;
+
+float lerp(float a, float b, float x) {
+    return a + x * (b - a);
+}
+
+// https://en.wikipedia.org/wiki/Smoothstep#Variations
+float fade(float t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+// http://riven8192.blogspot.com/2010/08/calculate-perlinnoise-twice-as-fast.html
+float grad(int hash, float x, float y, float z) {
+    switch (hash & 0xF) {
+        case 0x0: return  x + y;
+        case 0x1: return -x + y;
+        case 0x2: return  x - y;
+        case 0x3: return -x - y;
+        case 0x4: return  x + z;
+        case 0x5: return -x + z;
+        case 0x6: return  x - z;
+        case 0x7: return -x - z;
+        case 0x8: return  y + z;
+        case 0x9: return -y + z;
+        case 0xA: return  y - z;
+        case 0xB: return -y - z;
+        case 0xC: return  y + x;
+        case 0xD: return -y + z;
+        case 0xE: return  y - x;
+        case 0xF: return -y - z;
+        default: return 0; // never happens
+    }
+}
+
+int perlinDot(float3 pos) {
+    int xi = (int)pos.x & 255;
+    int yi = (int)pos.y & 255;
+    int zi = (int)pos.z & 255;
+
+    int verts[8] = {
+        permutation[permutation[permutation[xi] + yi] + zi],
+        permutation[permutation[permutation[xi + 1] + yi] + zi],
+        permutation[permutation[permutation[xi] + yi + 1] + zi],
+        permutation[permutation[permutation[xi + 1] + yi + 1] + zi],
+        permutation[permutation[permutation[xi] + yi] + zi + 1],
+        permutation[permutation[permutation[xi + 1] + yi] + zi + 1],
+        permutation[permutation[permutation[xi] + yi + 1] + zi + 1],
+        permutation[permutation[permutation[xi + 1] + yi + 1] + zi + 1]
+    };
+    
+    float xd = pos.x - (int)pos.x;
+    float yd = pos.y - (int)pos.y;
+    float zd = pos.z - (int)pos.z;
+    float xf = fade(xd);
+    float yf = fade(yd);
+    float zf = fade(zd);
+
+    float value = lerp(
+        lerp(
+            lerp(
+                grad(verts[0], xd, yd, zd),
+                grad(verts[1], xd - 1, yd, zd),
+                xf
+            ), 
+            lerp(
+                grad(verts[2], xd, yd - 1, zd),
+                grad(verts[3], xd - 1, yd - 1, zd),
+                xf
+            ),
+            yf
+        ),
+        lerp(
+            lerp(
+                grad(verts[4], xd, yd, zd - 1),
+                grad(verts[5], xd - 1, yd, zd - 1),
+                xf
+            ),
+            lerp(
+                grad(verts[6], xd, yd - 1, zd - 1),
+                grad(verts[7], xd - 1, yd - 1, zd - 1),
+                xf
+            ),
+            yf
+        ),
+        zf
+    );
+
+    return ((value + 1) / 2 < dotsSep) ? 0 : 1;
+}
