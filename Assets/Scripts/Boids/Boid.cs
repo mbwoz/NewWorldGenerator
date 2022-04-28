@@ -5,13 +5,13 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour {
     // movement related constants
-    private float _speed = 1f;
+    private float _speed = 0.05f;
 
     // collision related constants
     private int _collisionPrecision = 10;
-    private float _collisionSensitivity = 3f;
+    private float _collisionSensitivity = 1f;
     private float _magicRatio = 1 + Mathf.Sqrt(5);
-    private float _drawLength = 10f;
+    private float _drawLength = 1f;
 
     // irrespective of frames
     void FixedUpdate() {

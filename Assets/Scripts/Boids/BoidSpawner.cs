@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BoidSpawner : MonoBehaviour {
-    private float _minSpawnRadius = 10f;
-    private float _maxSpawnRadius = 20f;
+    private float _minSpawnRadius = 1f;
+    private float _maxSpawnRadius = 2f;
     public GameObject boid;
     // Start is called before the first frame update
     void Start() {
@@ -18,9 +18,8 @@ public class BoidSpawner : MonoBehaviour {
     }
     
     void SpawnBoid() {
-        Vector3 position = Random.insideUnitSphere * Random.Range(_minSpawnRadius, _maxSpawnRadius);
+        Vector3 position = transform.position + Random.insideUnitSphere * Random.Range(_minSpawnRadius, _maxSpawnRadius);
         Quaternion direction = Random.rotation;
         Instantiate(boid, position, direction);
-        
     }
 }
