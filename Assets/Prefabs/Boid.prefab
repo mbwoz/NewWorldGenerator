@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 2335647581197455286}
   - component: {fileID: 2335647581197455285}
   - component: {fileID: 2335647581197455284}
-  - component: {fileID: 2335647581197455283}
   - component: {fileID: 8915015323687457613}
+  - component: {fileID: 8328935665816632725}
   m_Layer: 0
   m_Name: Boid
   m_TagString: Untagged
@@ -83,20 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &2335647581197455283
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2335647581197455282}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!114 &8915015323687457613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,3 +95,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc07fcd04e8562974870f71a55d10583, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!136 &8328935665816632725
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2335647581197455282}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 0.50000024
+  m_Height: 2.0000005
+  m_Direction: 1
+  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940699}

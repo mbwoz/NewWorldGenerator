@@ -9,7 +9,7 @@ public class CameraMovement : MonoBehaviour {
     private float _xRotationCamera = 0f;
     private float _yRotationCamera = 0f;
     
-    private float _speed = 0.1f;
+    private float _speed = 10f;
     private float _scale = 0.05f;
 
     // Start is called before the first frame update
