@@ -5,29 +5,56 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour {
     // movement related constants
-    private float _speed = 0.05f;
+    private float _speed = 0.1f;
+
+    // grouping related constants
+    private float _closeRadius = 3f;
+    private float _viewRadius = 5f;
+
+    private float _repulsion = 4f;
+    private float _attraction = 1f;
+
+    private float _directionWeight = 1f;
+    private float _stubborness = 6f;
 
     // collision related constants
     private int _collisionPrecision = 10;
     private float _collisionSensitivity = 1f;
     private float _magicRatio = 1 + Mathf.Sqrt(5);
-    private float _drawLength = 1f;
 
     // irrespective of frames
     void FixedUpdate() {
-        Vector3 primaryDirection = PrimaryDirection();
-        DrawColliders(transform.position, primaryDirection);
-        Vector3 direction = closeVectors(primaryDirection).First(vector => !IsColliding(vector));
+        Vector3 wantsToGo = AnalyzeFriends();
+        // DrawColliders(transform.position, primaryDirection);
+        Vector3 direction = closeVectors(wantsToGo).First(vector => !IsColliding(vector));
         direction *= _speed;
         transform.up = direction;
         transform.position += direction;
     }
+
     Vector3 PrimaryDirection() {
         return transform.up;
     }
 
+    Vector3 AnalyzeFriends() {
+        Vector3 repulsiveAttractiveForce = Vector3.zero;
+        Vector3 directionForce = Vector3.zero;
+        foreach (var boid in GameObject.FindGameObjectsWithTag("Boid")) {
+            float distance = (boid.transform.position - transform.position).sqrMagnitude;
+            if (distance < _closeRadius * _closeRadius) {
+                repulsiveAttractiveForce += (transform.position - boid.transform.position).normalized * _repulsion;
+                directionForce += boid.transform.up;
+            } else if (distance < _viewRadius * _viewRadius) {
+                repulsiveAttractiveForce += (boid.transform.position - transform.position).normalized * _attraction;
+            }
+        }
+        Vector3 direction = repulsiveAttractiveForce != Vector3.zero ? repulsiveAttractiveForce.normalized : transform.up;
+        direction += directionForce.normalized * _directionWeight;
+        direction += transform.up * _stubborness;
+        return direction.normalized;
+    }
+
     bool IsColliding(Vector3 direction) {
-        Debug.DrawLine(transform.position, transform.position + direction * _collisionSensitivity, Color.blue);
         return Physics.Raycast(transform.position, direction, _collisionSensitivity);
     }
 
@@ -43,11 +70,8 @@ public class Boid : MonoBehaviour {
 
     void DrawColliders(Vector3 position, Vector3 direction) {
         foreach (Vector3 vec in closeVectors(direction)) {
-            if(IsColliding(vec)) {
-                Debug.DrawLine(position, position + vec * _drawLength, Color.red);
-            } else {
-                Debug.DrawLine(position, position + vec * _drawLength, Color.green);
-            }
+            Color lineColor = IsColliding(vec) ? Color.red : Color.green;
+            Debug.DrawLine(position, position + vec * _collisionSensitivity, lineColor);
         }
     }
 }
