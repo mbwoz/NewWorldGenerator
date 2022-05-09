@@ -5,7 +5,6 @@ using UnityEngine;
 public class Collectable : MonoBehaviour {
 
     private GameObject playerObj;
-    private CollectablesManager manager;
 
     private int distance = 5;
     private int range = 1;
@@ -34,28 +33,21 @@ public class Collectable : MonoBehaviour {
         positionsBuffer.Release();
     }
 
-    public void SetUp(ComputeShader _surroundCS, CollectablesManager _manager) {
-        manager = _manager;
+    public void SetUp(ComputeShader _surroundCS, GameObject prefab) {
         surroundCS = _surroundCS;
 
         kernelIndex = surroundCS.FindKernel("Surround");
         playerObj = GameObject.Find("Capsule");
 
-        meshFilter = gameObject.GetComponent<MeshFilter>();
-        meshRenderer = gameObject.GetComponent<MeshRenderer>();
         sphereCollider = gameObject.GetComponent<SphereCollider>();
 
-        if (meshFilter == null)
-            meshFilter = gameObject.AddComponent<MeshFilter>();
-        if (meshRenderer == null)
-            meshRenderer = gameObject.AddComponent<MeshRenderer>();
         if (sphereCollider == null)
             sphereCollider = gameObject.AddComponent<SphereCollider>();
 
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        meshFilter.sharedMesh = sphere.GetComponent<MeshFilter>().sharedMesh;
-        Destroy(sphere);
-
+        GameObject body = Instantiate(prefab);
+        body.transform.position = transform.position;
+        body.transform.SetParent(transform);
+        
         transform.localScale = Vector3.one * sphereRadius;
         sphereCollider.radius = colliderRadius;
         sphereCollider.isTrigger = true;
@@ -64,7 +56,7 @@ public class Collectable : MonoBehaviour {
     }
 
     private void OnTriggerEnter(Collider other) {
-        manager.UpdateScore();
+        CollectablesManager.UpdateScore();
         Relocate();
     }
 

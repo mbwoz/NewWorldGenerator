@@ -1,0 +1,25 @@
+#pragma kernel Main
+#define PI 3.14159265358979323846
+
+RWStructuredBuffer<float3> _Positions;
+uint _Resolution;
+float _Step, _Time;
+float3 _SrcPos;
+
+float3 Torus(float u, float v, float t) {
+    float r1 = 0.5 + 0.1 * sin(PI * (6.0 * u + 0.5 * t));
+    float r2 = 0.15 + 0.05 * sin(PI * (8.0 * u + 4.0 * v + 2.0 * t));
+    float s = r1 + r2 * cos(PI * v);
+    float a = r2 * sin(PI * v);
+    float b = s * sin(PI * u);
+    float c = s * cos(PI * u);
+    return float3(cos(t) * a - sin(t) * c, b, sin(t) * a + cos(t) * c);
+}
+
+[numthreads(16, 16, 1)]
+void Main (uint3 id : SV_DispatchThreadID) {
+    float2 uv = (id.xy + 0.5) * _Step - 1.0;
+    int t = id.x + id.y * _Resolution;
+    if (t < _Resolution * _Resolution)
+        _Positions[t] = Torus(uv.x, uv.y, _Time) + _SrcPos;
+}
