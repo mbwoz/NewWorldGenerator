@@ -11,8 +11,6 @@ public class Collectable : MonoBehaviour {
     private float prefabScale = 0.5f;
     private float colliderRadius = 1f;
 
-    private MeshFilter meshFilter;
-    private MeshRenderer meshRenderer;
     private SphereCollider sphereCollider;
 
     private ComputeShader surroundCS;
