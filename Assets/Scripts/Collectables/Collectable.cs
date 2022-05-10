@@ -10,7 +10,7 @@ public class Collectable : MonoBehaviour {
     private int range = 1;
     private int numThreads = 16;
 
-    private float sphereRadius = 0.5f;
+    private float prefabScale = 0.5f;
     private float colliderRadius = 1f;
 
     private MeshFilter meshFilter;
@@ -46,9 +46,9 @@ public class Collectable : MonoBehaviour {
 
         GameObject body = Instantiate(prefab);
         body.transform.position = transform.position;
+        body.transform.localScale = Vector3.one * prefabScale;
         body.transform.SetParent(transform);
         
-        transform.localScale = Vector3.one * sphereRadius;
         sphereCollider.radius = colliderRadius;
         sphereCollider.isTrigger = true;
 

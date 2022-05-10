@@ -19,7 +19,7 @@ float3 Torus(float u, float v, float t) {
 [numthreads(16, 16, 1)]
 void Main (uint3 id : SV_DispatchThreadID) {
     float2 uv = (id.xy + 0.5) * _Step - 1.0;
-    int t = id.x + id.y * _Resolution;
+    uint t = id.x + id.y * _Resolution;
     if (t < _Resolution * _Resolution)
         _Positions[t] = Torus(uv.x, uv.y, _Time) + _SrcPos;
 }
