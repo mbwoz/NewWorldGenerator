@@ -6,6 +6,9 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rigidBody;
     private CapsuleCollider capsuleCollider;
     
+    // player consts
+    private float scale = 0.5f;
+
     // camera movement parameters
     private float _mouseSensitivity = 100f;
     private float _scrollSensitivity = 10f;
@@ -24,8 +27,27 @@ public class PlayerMovement : MonoBehaviour
     private int jumpCounter;
     private bool jumpCooldown = false;
     
-    // Start is called before the first frame update
+    // compute shaders for starting position
+    private int numThreads = 16;
+    private int mult = 8;
+    private int spread = (1 << 11);
+
+    public ComputeShader surroundCS;
+    private int kernelIndex;
+    private ComputeBuffer positionsBuffer;
+    private ComputeBuffer surroundingsBuffer;
+
+
+    void Awake() {
+        kernelIndex = surroundCS.FindKernel("Surround");
+        positionsBuffer = new ComputeBuffer(mult * numThreads, sizeof(int) * 3);
+        surroundingsBuffer = new ComputeBuffer(mult * numThreads, sizeof(int));
+    }
+
     void Start() {
+        transform.localScale = Vector3.one * scale;
+        transform.position = GetStartingPosition();
+
         if (gameObject.GetComponent<Rigidbody>() == null) {
             gameObject.AddComponent<Rigidbody>();
         }
@@ -36,6 +58,7 @@ public class PlayerMovement : MonoBehaviour
         rigidBody.useGravity = true;
         rigidBody.isKinematic = false;
         rigidBody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+
         if (gameObject.GetComponent<CapsuleCollider>() == null) {
             gameObject.AddComponent<CapsuleCollider>();
         }
@@ -47,6 +70,11 @@ public class PlayerMovement : MonoBehaviour
         capsuleCollider.direction = 1;
         capsuleCollider.material.staticFriction = 0;
         capsuleCollider.material.dynamicFriction = 0;
+    }
+
+    void OnDisable() {
+        surroundingsBuffer.Release();
+        positionsBuffer.Release();
     }
 
     // Update is called once per frame
@@ -130,5 +158,37 @@ public class PlayerMovement : MonoBehaviour
             inputVector += transform.right;
         }
         return inputVector;
+    }
+
+    private Vector3 GetStartingPosition() {
+        Vector3Int[] positions = new Vector3Int[mult * numThreads];
+        int[] surroundings = new int[mult * numThreads];
+
+        while (true) {
+            for (int i = 0; i < positions.Length; i += 2) {
+                positions[i].x = Mathf.RoundToInt((Random.value - 0.5f) * spread);
+                positions[i].y = Mathf.RoundToInt((Random.value - 0.5f) * spread);
+                positions[i].z = Mathf.RoundToInt((Random.value - 0.5f) * spread);
+                positions[i+1] = positions[i];
+                positions[i+1].y++;
+            }
+
+            surroundCS.SetBuffer(kernelIndex, "positions", positionsBuffer);
+            positionsBuffer.SetData(positions);
+            surroundCS.SetBuffer(kernelIndex, "surroundings", surroundingsBuffer);
+
+            surroundCS.Dispatch(kernelIndex, mult, 1, 1);
+
+            surroundingsBuffer.GetData(surroundings);
+
+            for (int i = 0; i < surroundings.Length; i += 2) {
+                if (surroundings[i] == 51 && surroundings[i+1] == 0) {
+                    Vector3 position = positions[i+1];
+                    position.x += 0.5f;
+                    position.z += 0.5f;
+                    return position;
+                }
+            }
+        }
     }
 }
