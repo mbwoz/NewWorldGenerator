@@ -1,0 +1,54 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+StructuredBuffer<float3> _CubesPositions;
+StructuredBuffer<float3> _CubesDirections;
+StructuredBuffer<int> _BoidsRanges;
+StructuredBuffer<int> _CubesRanges;
+RWStructuredBuffer<float3> _Results;
+
+float _closeRadius;
+float _viewRadius;
+
+float _repulsion;
+float _attraction;
+
+float _groupingWeight;
+float _directionWeight;
+
+static const int threadsPerCube = 512;
+
+float sqrMagnitude(float3 a, float3 b) {
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z);
+}
+
+[numthreads(1,threadsPerCube,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    for (int i = id.y; i < _BoidsRanges[id.x + 1] - _BoidsRanges[id.x]; i += threadsPerCube) {
+        float3 currPos = _CubesPositions[_CubesRanges[id.x] + i];
+        float3 repulsiveAttractiveForce = float3(0, 0, 0);
+        float3 directionForce = float3(0, 0, 0);
+        for (int j = _CubesRanges[id.x]; j < _CubesRanges[id.x + 1]; j++) {
+            float3 otherPos = _CubesPositions[j];
+            float3 otherDir = _CubesDirections[j];
+            float distance = sqrMagnitude(currPos, otherPos);
+            if (distance < _closeRadius * _closeRadius && distance > 0) {
+                repulsiveAttractiveForce += normalize(currPos - otherPos) * _repulsion;
+                directionForce += otherDir;
+            } else if (distance < _viewRadius * _viewRadius && distance > 0) {
+                repulsiveAttractiveForce += normalize(otherPos - currPos) * _attraction;
+            }
+        }
+        if (any(repulsiveAttractiveForce)) {
+            repulsiveAttractiveForce = normalize(repulsiveAttractiveForce);
+        }
+        if (any(directionForce)) {
+            directionForce = normalize(directionForce);
+        }
+        _Results[_BoidsRanges[id.x] + i] = repulsiveAttractiveForce * _groupingWeight + directionForce * _directionWeight;
+    }
+}
+
