@@ -18,7 +18,7 @@ float _attraction;
 float _groupingWeight;
 float _directionWeight;
 
-static const int threadsPerCube = 512;
+static const int threadsPerCube = 256;
 
 float sqrMagnitude(float3 a, float3 b) {
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z);
@@ -29,26 +29,36 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     for (int i = id.y; i < _BoidsRanges[id.x + 1] - _BoidsRanges[id.x]; i += threadsPerCube) {
         float3 currPos = _CubesPositions[_CubesRanges[id.x] + i];
-        float3 repulsiveAttractiveForce = float3(0, 0, 0);
+        float3 repulsiveForce = float3(0, 0, 0);
+        int repulsiveCount = 0;
+        float3 attractiveForce = float3(0, 0, 0);
+        int attractiveCount = 0;
         float3 directionForce = float3(0, 0, 0);
         for (int j = _CubesRanges[id.x]; j < _CubesRanges[id.x + 1]; j++) {
             float3 otherPos = _CubesPositions[j];
             float3 otherDir = _CubesDirections[j];
             float distance = sqrMagnitude(currPos, otherPos);
             if (distance < _closeRadius * _closeRadius && distance > 0) {
-                repulsiveAttractiveForce += normalize(currPos - otherPos) * _repulsion;
+                repulsiveForce += otherPos;
+                ++repulsiveCount;
                 directionForce += otherDir;
             } else if (distance < _viewRadius * _viewRadius && distance > 0) {
-                repulsiveAttractiveForce += normalize(otherPos - currPos) * _attraction;
+                attractiveForce += otherPos;
+                ++attractiveCount;
             }
         }
-        if (any(repulsiveAttractiveForce)) {
-            repulsiveAttractiveForce = normalize(repulsiveAttractiveForce);
+        if (repulsiveCount > 0) {
+            repulsiveForce /= repulsiveCount;
+            repulsiveForce = normalize(currPos - repulsiveForce);
+        }
+        if (attractiveCount > 0) {
+            attractiveForce /= attractiveCount;
+            attractiveForce = normalize(attractiveForce - currPos);
         }
         if (any(directionForce)) {
             directionForce = normalize(directionForce);
         }
-        _Results[_BoidsRanges[id.x] + i] = repulsiveAttractiveForce * _groupingWeight + directionForce * _directionWeight;
+        _Results[_BoidsRanges[id.x] + i] = repulsiveForce * _repulsion + attractiveForce * _attraction + directionForce * _directionWeight;
     }
 }
 

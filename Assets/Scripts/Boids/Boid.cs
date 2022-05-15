@@ -8,11 +8,11 @@ public class Boid : MonoBehaviour {
     // constants related to how boids group and interact with each other are in the manager
     // movement related constants
     private float _speed = 0.1f;
-    private float _stubborness = 10f;
+    private float _stubborness = 7f;
     private float _conscientiousness = 1f;
 
     // collision related constants
-    private int _collisionPrecision = 30;
+    private int _collisionPrecision = 20;
     private float _collisionSensitivity = 1f;
     private float _magicRatio = 1 + Mathf.Sqrt(5);
 
@@ -70,4 +70,9 @@ public class Boid : MonoBehaviour {
         position /= _boxSize;
         return Vector3Int.FloorToInt(position);
     }
+
+//     void OnDrawGizmos() {
+//         Gizmos.color = new Color(1, 0, 0, 0.2f);
+//         Gizmos.DrawCube((Vector3) PositionToCubeLocation(transform.position) * _boxSize + Vector3.one * _boxSize/2, new Vector3(_boxSize, _boxSize, _boxSize));
+//     }
 }

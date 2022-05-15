@@ -5,7 +5,7 @@ using UnityEngine;
 public class BoidSpawner : MonoBehaviour {
     private float _minSpawnRadius = 1f;
     private float _maxSpawnRadius = 2f;
-    private int _boidsPerClick = 20;
+    private int _boidsPerClick = 100;
     public GameObject boid;
     // Start is called before the first frame update
     void Start() {

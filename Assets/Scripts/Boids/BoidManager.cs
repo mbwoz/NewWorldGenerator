@@ -33,14 +33,14 @@ public class BoidManager : MonoBehaviour {
     private float _closeRadius = 3f;
     private float _viewRadius = 20f;
 
-    private float _repulsion = 40f;
-    private float _attraction = 5f;
+    private float _repulsion = 1.5f;
+    private float _attraction = 1.5f;
 
     private float _groupingWeight = 1f;
-    private float _directionWeight = 1f;
+    private float _directionWeight = 3f;
 
     // performance related constants
-    public float BoxSize { get; private set; } = 20f;
+    public float BoxSize { get; private set; } = 50f;
 
     // I can't believe I actually have to add this...
     private class Vector3Comparator : IComparer<Vector3Int> {
@@ -92,6 +92,7 @@ public class BoidManager : MonoBehaviour {
         if (boidsCount == 0) {
             return;
         }
+//         Debug.Log(boidsCount);
         RunGPUKernel();
     }
 
