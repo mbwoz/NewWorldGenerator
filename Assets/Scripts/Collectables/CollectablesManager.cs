@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CollectablesManager : MonoBehaviour {
+public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
     private int collectablescnt = 1;
-    private static int score = 0;
+    private int score = 0;
 
     public GameObject collectiblePrefab;
     public ComputeShader surroundCS;
@@ -15,10 +15,11 @@ public class CollectablesManager : MonoBehaviour {
             GameObject gameObj = new GameObject("Collectable");
             Collectable collectable = gameObj.AddComponent(typeof(Collectable)) as Collectable;
             collectable.SetUp(surroundCS, collectiblePrefab);
+            collectable.AddObserver((ICollectableObserver)this);
         }
     }
 
-    public static void UpdateScore() {
+    public void Collected() {
         score++;
         Debug.Log(score);
     }

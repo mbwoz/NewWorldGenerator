@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Collectable : MonoBehaviour {
 
-    private GameObject playerObj;
-
     private int distance = 5;
     private int range = 1;
     private int numThreads = 16;
@@ -22,8 +20,9 @@ public class Collectable : MonoBehaviour {
     private ComputeBuffer positionsBuffer;
     private ComputeBuffer surroundingsBuffer;
 
+    private List<ICollectableObserver> observers;
 
-    void Awake() { 
+    void Awake() {
         positionsBuffer = new ComputeBuffer(numThreads, sizeof(int) * 3);
         surroundingsBuffer = new ComputeBuffer(numThreads, sizeof(int));
     }
@@ -35,28 +34,35 @@ public class Collectable : MonoBehaviour {
 
     public void SetUp(ComputeShader _surroundCS, GameObject prefab) {
         surroundCS = _surroundCS;
-
         kernelIndex = surroundCS.FindKernel("Surround");
-        playerObj = GameObject.Find("Capsule");
 
-        sphereCollider = gameObject.GetComponent<SphereCollider>();
-
-        if (sphereCollider == null)
-            sphereCollider = gameObject.AddComponent<SphereCollider>();
+        observers = new List<ICollectableObserver>();
 
         GameObject body = Instantiate(prefab);
         body.transform.position = transform.position;
         body.transform.localScale = Vector3.one * prefabScale;
         body.transform.SetParent(transform);
         
+        sphereCollider = gameObject.GetComponent<SphereCollider>();
+        if (sphereCollider == null)
+            sphereCollider = gameObject.AddComponent<SphereCollider>();
         sphereCollider.radius = colliderRadius;
         sphereCollider.isTrigger = true;
+
+        transform.position = ((PlayerMovement) FindObjectOfType(typeof(PlayerMovement))).transform.position;
 
         Relocate();
     }
 
+    public void AddObserver(ICollectableObserver observer) {
+        observers.Add(observer);
+    }
+
     private void OnTriggerEnter(Collider other) {
-        CollectablesManager.UpdateScore();
+        foreach (var observer in observers) {
+            observer.Collected();
+        }
+
         Relocate();
     }
 
@@ -68,7 +74,7 @@ public class Collectable : MonoBehaviour {
         do {
             for (int i = 0; i < positions.Length; i++) {
                 positions[i] = Vector3Int.RoundToInt(
-                    playerObj.transform.position + Random.onUnitSphere * (distance + Random.value * range)
+                    transform.position + Random.onUnitSphere * (distance + Random.value * range)
                 );
             }
 
