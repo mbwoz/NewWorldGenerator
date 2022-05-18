@@ -44,3 +44,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   analyzeCS: {fileID: 7200000, guid: 9a914b1d45d02420ba06fa9d4f12eb43, type: 3}
+  boid: {fileID: 2335647581197455282, guid: 3e98fdcc7be93d20b9f5b41cd0693712, type: 3}

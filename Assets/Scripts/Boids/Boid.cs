@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using ExtensionMethods;
 
 public class Boid : MonoBehaviour {
     // here are constants related to a single boid
@@ -14,65 +15,44 @@ public class Boid : MonoBehaviour {
     // collision related constants
     private int _collisionPrecision = 20;
     private float _collisionSensitivity = 1f;
-    private float _magicRatio = 1 + Mathf.Sqrt(5);
 
-    // performance related constants
-    private float _boxSize;
+    // target related constant
+    private float _radius = 2f;
+
     private BoidManager manager;
     public Vector3 friendsDirection { private get; set; }
-
-    void Awake() {
-        manager = (BoidManager) FindObjectOfType(typeof(BoidManager));
-        _boxSize = manager.BoxSize;
-        manager.AddBoid(PositionToCubeLocation(transform.position), this);
-    }
+    public Component target { private get; set; }
+    // in text-book observer design pattern this should be a list rather than a single reference
+    // but performance matters here, so we prefer a reference rather than one element list
+    public IBoidObserver observer { private get; set; }
 
     // irrespective of frames
     void FixedUpdate() {
-        Vector3Int oldPosition = PositionToCubeLocation(transform.position);
-        Vector3 destinationDirection = Vector3.zero; // TODO
-        // friendsDirection calculated on GPU and already normalized
-        Vector3 wantsToGo = (friendsDirection + transform.up * _stubborness + destinationDirection * _conscientiousness).normalized;
+        Vector3 direction;
+        // target null checks are not necessary, they are here to make playground functional
+        if (target != null && (transform.position - target.transform.position).sqrMagnitude < _radius * _radius) {
+            Vector3 destination = FollowFromScratch();
+            direction = destination - transform.position;
+        } else {
+            Vector3 destinationDirection = target != null ? (target.transform.position - transform.position).normalized : Vector3.zero;
+            // friendsDirection calculated on GPU and already normalized
+            Vector3 wantsToGo = (friendsDirection + transform.up * _stubborness + destinationDirection * _conscientiousness).normalized;
 
-        Vector3 direction = closeVectors(wantsToGo).First(vector => !IsColliding(vector)).normalized;
-        transform.up = direction;
-        direction *= _speed;
-        transform.position += direction;
-
-        Vector3Int newPosition = PositionToCubeLocation(transform.position);
-        if (oldPosition != newPosition) {
-            manager.MoveBoid(oldPosition, newPosition, this);
+            direction = wantsToGo.CloseVectors(_collisionPrecision).First(vector => !IsColliding(vector)).normalized;
+            transform.up = direction;
+            direction *= _speed;
         }
+
+        observer.BoidMoved(this, transform.position, transform.position + direction);
+        transform.position += direction;
     }
 
-    bool IsColliding(Vector3 direction) {
+    private Vector3 FollowFromScratch() {
+        // return position to start following the target again
+        return ((PlayerMovement) FindObjectOfType(typeof(PlayerMovement))).transform.position + Random.insideUnitSphere * Random.Range(10, 20);
+    }
+
+    private bool IsColliding(Vector3 direction) {
         return Physics.Raycast(transform.position, direction, _collisionSensitivity);
     }
-
-    IEnumerable<Vector3> closeVectors(Vector3 vector) {
-        Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, vector);
-        foreach (int num in Enumerable.Range(0, _collisionPrecision)) {
-            float alpha = 2 * Mathf.Asin(Mathf.Sqrt((float)num / _collisionPrecision));
-            float beta = num * _magicRatio * Mathf.PI;
-            Vector3 vec = rotation * new Vector3(Mathf.Sin(alpha) * Mathf.Cos(beta), Mathf.Sin(alpha) * Mathf.Sin(beta), Mathf.Cos(alpha));
-            yield return vec;
-        }
-    }
-
-    void DrawColliders(Vector3 position, Vector3 direction) {
-        foreach (Vector3 vec in closeVectors(direction)) {
-            Color lineColor = IsColliding(vec) ? Color.red : Color.green;
-            Debug.DrawLine(position, position + vec * _collisionSensitivity, lineColor);
-        }
-    }
-
-    private Vector3Int PositionToCubeLocation(Vector3 position) {
-        position /= _boxSize;
-        return Vector3Int.FloorToInt(position);
-    }
-
-//     void OnDrawGizmos() {
-//         Gizmos.color = new Color(1, 0, 0, 0.2f);
-//         Gizmos.DrawCube((Vector3) PositionToCubeLocation(transform.position) * _boxSize + Vector3.one * _boxSize/2, new Vector3(_boxSize, _boxSize, _boxSize));
-//     }
 }

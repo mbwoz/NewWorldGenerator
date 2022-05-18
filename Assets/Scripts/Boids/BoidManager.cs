@@ -5,30 +5,7 @@ using System;
 using UnityEngine;
 using ExtensionMethods;
 
-namespace ExtensionMethods {
-    public static class MyExtensions {
-        public static IEnumerable<int> Scan(this IEnumerable<int> seq) {
-            int sum = 0;
-            yield return sum;
-            foreach (int elem in seq) {
-                sum += elem;
-                yield return sum;
-            }
-        }
-        public static IEnumerable<Vector3Int> SurroundingVectors(this Vector3Int vec) {
-            // 3x3x3 cube without corners. corners don't matter that much and decrease performance
-            yield return vec;
-            yield return vec + Vector3Int.back;
-            yield return vec + Vector3Int.forward;
-            yield return vec + Vector3Int.left;
-            yield return vec + Vector3Int.right;
-            yield return vec + Vector3Int.down;
-            yield return vec + Vector3Int.up;
-        }
-    }
-}
-
-public class BoidManager : MonoBehaviour {
+public class BoidManager : MonoBehaviour, IBoidObserver {
     // grouping related constants
     private float _closeRadius = 3f;
     private float _viewRadius = 20f;
@@ -40,7 +17,8 @@ public class BoidManager : MonoBehaviour {
     private float _directionWeight = 3f;
 
     // performance related constants
-    public float BoxSize { get; private set; } = 50f;
+    private float _boxSize = 50f;
+    private int _boidsPerTarget = 500;
 
     // I can't believe I actually have to add this...
     private class Vector3Comparator : IComparer<Vector3Int> {
@@ -75,6 +53,38 @@ public class BoidManager : MonoBehaviour {
     private ComputeBuffer boidsDirectionsBuffer;
 
     private Vector3[] boidsDirectionArray;
+    public GameObject boid;
+
+    public void BoidMoved(Boid boid, Vector3 prev, Vector3 next) {
+        Vector3Int prevCube = prev.ToCubePosition(_boxSize);
+        Vector3Int nextCube = next.ToCubePosition(_boxSize);
+        if (nextCube == prevCube) return;
+        if (!BoidsDict.ContainsKey(nextCube)) BoidsDict.Add(nextCube, new HashSet<Boid>());
+        BoidsDict[prevCube].Remove(boid);
+        BoidsDict[nextCube].Add(boid);
+    }
+
+    // for playground
+    public void NewBoid(Vector3 where) {
+        GameObject spawned = (GameObject) Instantiate(boid, where, UnityEngine.Random.rotation);
+        Boid newBoid = spawned.GetComponent<Boid>();
+        newBoid.observer = this;
+        Vector3Int cube = where.ToCubePosition(_boxSize);
+        if (!BoidsDict.ContainsKey(cube)) BoidsDict.Add(cube, new HashSet<Boid>());
+        BoidsDict[cube].Add(newBoid);
+    }
+
+    public void FollowObject(Component target) {
+        for (int i = 0; i < _boidsPerTarget; i++) {
+            GameObject spawned = (GameObject) Instantiate(boid, target.transform.position, UnityEngine.Random.rotation);
+            Boid newBoid = spawned.GetComponent<Boid>();
+            newBoid.observer = this;
+            newBoid.target = target;
+            Vector3Int cube = target.transform.position.ToCubePosition(_boxSize);
+            if (!BoidsDict.ContainsKey(cube)) BoidsDict.Add(cube, new HashSet<Boid>());
+            BoidsDict[cube].Add(newBoid);
+        }
+    }
 
     private void Awake() {
         analyzeCS = Instantiate(analyzeCS);
@@ -94,17 +104,6 @@ public class BoidManager : MonoBehaviour {
         }
 //         Debug.Log(boidsCount);
         RunGPUKernel();
-    }
-
-    public void AddBoid(Vector3Int cube, Boid boid) {
-        if (!BoidsDict.ContainsKey(cube)) BoidsDict.Add(cube, new HashSet<Boid>());
-        BoidsDict[cube].Add(boid);
-    }
-
-    public void MoveBoid(Vector3Int prev, Vector3Int next, Boid boid) {
-        if (!BoidsDict.ContainsKey(next)) BoidsDict.Add(next, new HashSet<Boid>());
-        BoidsDict[prev].Remove(boid);
-        BoidsDict[next].Add(boid);
     }
 
     private void RemoveOldCubes() {
@@ -143,7 +142,7 @@ public class BoidManager : MonoBehaviour {
         analyzeCS.SetBuffer(0, resultsID, boidsDirectionsBuffer);
         analyzeCS.Dispatch(0, BoidsDict.Count, 1, 1);
 
-        //  collect results and distribute to boids
+        // collect results and distribute to boids
         boidsDirectionArray = new Vector3[boidsCount];
         boidsDirectionsBuffer.GetData(boidsDirectionArray, 0, 0, boidsCount);
         int i = 0;

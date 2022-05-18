@@ -118,14 +118,14 @@ public class PlayerMovement : MonoBehaviour
     private void HandleJump() {
         if (jumpCooldown) return;
         if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F)) return;
-        if (IsGrounded()) {
-            jumpCounter = 0;
-        } else {
-            jumpCounter += 1;
-        }
-        if (jumpCounter > _maxJumps) {
-            return;
-        }
+//         if (IsGrounded()) {
+//             jumpCounter = 0;
+//         } else {
+//             jumpCounter += 1;
+//         }
+//         if (jumpCounter > _maxJumps) {
+//             return;
+//         }
         rigidBody.AddForce(transform.up * _yeet);
         jumpCooldown = true;
         IEnumerator endCooldownCoroutine() {

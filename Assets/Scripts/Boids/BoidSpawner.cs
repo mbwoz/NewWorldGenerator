@@ -6,9 +6,10 @@ public class BoidSpawner : MonoBehaviour {
     private float _minSpawnRadius = 1f;
     private float _maxSpawnRadius = 2f;
     private int _boidsPerClick = 100;
-    public GameObject boid;
+    private BoidManager manager;
     // Start is called before the first frame update
     void Start() {
+        manager = (BoidManager) FindObjectOfType(typeof(BoidManager));
         
     }
 
@@ -16,14 +17,8 @@ public class BoidSpawner : MonoBehaviour {
     void Update() {
         if (Input.GetMouseButtonDown(0)) {
             for (int i = 0; i < _boidsPerClick; i++) {
-                SpawnBoid();
+                manager.NewBoid(transform.position + Random.insideUnitSphere * Random.Range(_minSpawnRadius, _maxSpawnRadius));
             }
         }
-    }
-    
-    void SpawnBoid() {
-        Vector3 position = transform.position + Random.insideUnitSphere * Random.Range(_minSpawnRadius, _maxSpawnRadius);
-        Quaternion direction = Random.rotation;
-        Instantiate(boid, position, direction);
     }
 }

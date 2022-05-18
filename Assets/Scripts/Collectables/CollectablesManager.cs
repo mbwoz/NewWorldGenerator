@@ -14,13 +14,14 @@ public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
     void Start() {
         collectables = new Collectable[collectablescnt];
-
+        BoidManager boidManager = (BoidManager)FindObjectOfType(typeof(BoidManager));
         for (int i = 0; i < collectablescnt; i++) {
             GameObject gameObj = new GameObject("Collectable");
             Collectable collectable = gameObj.AddComponent(typeof(Collectable)) as Collectable;
             collectable.SetUp(surroundCS, collectiblePrefab);
             collectable.AddObserver((ICollectableObserver)this);
             collectables[i] = collectable;
+            boidManager.FollowObject(collectable);
         }
     }
 
