@@ -33,6 +33,8 @@ public class BoidManager : MonoBehaviour, IBoidObserver {
 
     private SortedDictionary<Vector3Int, HashSet<Boid>> BoidsDict = new SortedDictionary<Vector3Int, HashSet<Boid>>(new Vector3Comparator());
 
+    [SerializeField] private ComputeShader surroundCS;
+
     [SerializeField] private ComputeShader analyzeCS;
     private readonly int cubesPositionsID = Shader.PropertyToID("_CubesPositions");
     private readonly int cubesDirectionsID = Shader.PropertyToID("_CubesDirections");
@@ -80,6 +82,7 @@ public class BoidManager : MonoBehaviour, IBoidObserver {
             Boid newBoid = spawned.GetComponent<Boid>();
             newBoid.observer = this;
             newBoid.target = target;
+            newBoid.surroundCS = surroundCS;
             Vector3Int cube = target.transform.position.ToCubePosition(_boxSize);
             if (!BoidsDict.ContainsKey(cube)) BoidsDict.Add(cube, new HashSet<Boid>());
             BoidsDict[cube].Add(newBoid);

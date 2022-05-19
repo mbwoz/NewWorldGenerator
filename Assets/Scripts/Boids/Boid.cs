@@ -26,6 +26,28 @@ public class Boid : MonoBehaviour {
     // but performance matters here, so we prefer a reference rather than one element list
     public IBoidObserver observer { private get; set; }
 
+    // surrounding compute shader data
+    private readonly int _surroundDist = 30;
+    private readonly int _surroundRange = 5;
+    private readonly int _surroundStep = 2;
+    private readonly int _surroundMult = 4;
+    private readonly int numThreads = 16;
+
+    public ComputeShader surroundCS { private get; set; }
+    private ComputeBuffer positionsBuffer;
+    private ComputeBuffer surroundingsBuffer;
+
+
+    void Awake() {
+        positionsBuffer = new ComputeBuffer(_surroundMult * numThreads, sizeof(int) * 3);
+        surroundingsBuffer = new ComputeBuffer(_surroundMult * numThreads, sizeof(int));
+    }
+
+    void OnDisable() {
+        surroundingsBuffer.Release();
+        positionsBuffer.Release();
+    }
+
     // irrespective of frames
     void FixedUpdate() {
         Vector3 direction;
@@ -47,9 +69,36 @@ public class Boid : MonoBehaviour {
         transform.position += direction;
     }
 
+    // position to start following the target again
     private Vector3 FollowFromScratch() {
-        // return position to start following the target again
-        return ((PlayerMovement) FindObjectOfType(typeof(PlayerMovement))).transform.position + Random.insideUnitSphere * Random.Range(10, 20);
+        int kernelIndex = surroundCS.FindKernel("Surround");
+        Vector3Int[] positions = new Vector3Int[_surroundMult * numThreads];
+        int[] surroundings = new int[_surroundMult * numThreads];
+
+        int range = _surroundRange;
+        while (true) {
+            Vector3 playerPosition = ((PlayerMovement) FindObjectOfType(typeof(PlayerMovement))).transform.position;
+            float dist = Vector3.Distance(target.transform.position, playerPosition);
+            for (int i = 0; i < positions.Length; i++) {
+                positions[i] = Vector3Int.RoundToInt(
+                    (((dist + _surroundDist) * playerPosition - _surroundDist * target.transform.position) / dist) + Random.insideUnitSphere * range
+                );
+            }
+
+            surroundCS.SetBuffer(kernelIndex, "positions", positionsBuffer);
+            positionsBuffer.SetData(positions);
+            surroundCS.SetBuffer(kernelIndex, "surroundings", surroundingsBuffer);
+
+            surroundCS.Dispatch(kernelIndex, _surroundMult, 1, 1);
+            surroundingsBuffer.GetData(surroundings);
+
+            for (int i = 0; i < surroundings.Length; i++) {
+                if (surroundings[i] == 0)
+                    return positions[i] + new Vector3(0.5f, 0.5f, 0.5f);
+            }
+
+            range *= _surroundStep;
+        }
     }
 
     private bool IsColliding(Vector3 direction) {
