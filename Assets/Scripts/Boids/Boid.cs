@@ -9,11 +9,11 @@ public class Boid : MonoBehaviour {
     // constants related to how boids group and interact with each other are in the manager
     // movement related constants
     private float _speed = 0.1f;
-    private float _stubborness = 7f;
+    private float _stubborness = 5f;
     private float _conscientiousness = 1f;
 
     // collision related constants
-    private int _collisionPrecision = 20;
+    private int _collisionPrecision = 30;
     private float _collisionSensitivity = 1f;
 
     // target related constant
@@ -26,8 +26,13 @@ public class Boid : MonoBehaviour {
     // but performance matters here, so we prefer a reference rather than one element list
     public IBoidObserver observer { private get; set; }
 
+    // respawning related constants
+    // how far behind the player the boids spawn
+    private readonly int _behind = 40;
+    // what is considered far away from player
+    private readonly float _farAway = 50f;
+
     // surrounding compute shader data
-    private readonly int _surroundDist = 30;
     private readonly int _surroundRange = 5;
     private readonly int _surroundStep = 2;
     private readonly int _surroundMult = 4;
@@ -36,11 +41,13 @@ public class Boid : MonoBehaviour {
     public ComputeShader surroundCS { private get; set; }
     private ComputeBuffer positionsBuffer;
     private ComputeBuffer surroundingsBuffer;
+    private PlayerMovement player;
 
 
     void Awake() {
         positionsBuffer = new ComputeBuffer(_surroundMult * numThreads, sizeof(int) * 3);
         surroundingsBuffer = new ComputeBuffer(_surroundMult * numThreads, sizeof(int));
+        player = (PlayerMovement) FindObjectOfType(typeof(PlayerMovement));
     }
 
     void OnDisable() {
@@ -52,7 +59,7 @@ public class Boid : MonoBehaviour {
     void FixedUpdate() {
         Vector3 direction;
         // target null checks are not necessary, they are here to make playground functional
-        if (target != null && (transform.position - target.transform.position).sqrMagnitude < _radius * _radius) {
+        if (NeedsReset()) {
             Vector3 destination = FollowFromScratch();
             direction = destination - transform.position;
         } else {
@@ -69,6 +76,20 @@ public class Boid : MonoBehaviour {
         transform.position += direction;
     }
 
+    private bool NeedsReset() {
+        // reached the target
+        if (target != null && (transform.position - target.transform.position).sqrMagnitude < _radius * _radius) {
+            return true;
+        }
+        // too far away from player
+        // player's probably an idiot and they're running away from the target
+        // but we don't want the boids to become rarer and rarer as we move further away from the target
+        if ((transform.position - player.transform.position).sqrMagnitude > _farAway * _farAway) {
+            return true;
+        }
+        return false;
+    }
+
     // position to start following the target again
     private Vector3 FollowFromScratch() {
         int kernelIndex = surroundCS.FindKernel("Surround");
@@ -77,11 +98,11 @@ public class Boid : MonoBehaviour {
 
         int range = _surroundRange;
         while (true) {
-            Vector3 playerPosition = ((PlayerMovement) FindObjectOfType(typeof(PlayerMovement))).transform.position;
+            Vector3 playerPosition = player.transform.position;
             float dist = Vector3.Distance(target.transform.position, playerPosition);
             for (int i = 0; i < positions.Length; i++) {
                 positions[i] = Vector3Int.RoundToInt(
-                    (((dist + _surroundDist) * playerPosition - _surroundDist * target.transform.position) / dist) + Random.insideUnitSphere * range
+                    (((dist + _behind) * playerPosition - _behind * target.transform.position) / dist) + Random.insideUnitSphere * range
                 );
             }
 

@@ -19,13 +19,11 @@ public class PlayerMovement : MonoBehaviour
     private float _maxNaturalSpeed = 5f;
     
     // jump and grounding related parameters
-    private float _yeet = 1000f;
-    private float _maxJumps = 3;
-    private float _scale = 0.5f;
-    private float _jumpCooldownLength = 0.2f;
+    private float _yeet = 200f;
     // in seconds
-    private int jumpCounter;
-    private bool jumpCooldown = false;
+    private float _jumpCooldownLength = 0.05f;
+    private bool _canJumpHigh = false;
+    private bool _jumpCooldown = false;
     
     // compute shaders for starting position
     private int numThreads = 16;
@@ -65,7 +63,7 @@ public class PlayerMovement : MonoBehaviour
         capsuleCollider = GetComponent<CapsuleCollider>();
         capsuleCollider.center = Vector3.zero;
         capsuleCollider.radius = 0.5f;
-        capsuleCollider.height = 2f;
+        capsuleCollider.height = 1f;
         // 1 corresponds to Y axis
         capsuleCollider.direction = 1;
         capsuleCollider.material.staticFriction = 0;
@@ -116,28 +114,25 @@ public class PlayerMovement : MonoBehaviour
     }
     
     private void HandleJump() {
-        if (jumpCooldown) return;
-        if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F)) return;
-//         if (IsGrounded()) {
-//             jumpCounter = 0;
-//         } else {
-//             jumpCounter += 1;
-//         }
-//         if (jumpCounter > _maxJumps) {
-//             return;
-//         }
-        rigidBody.AddForce(transform.up * _yeet);
-        jumpCooldown = true;
+        if (_jumpCooldown) return;
+        if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.F)){
+            _canJumpHigh = true;
+            return;
+        }
+        Vector3 jumpForce = transform.up * _yeet;
+        if (_canJumpHigh) {
+            jumpForce *= 3;
+            _canJumpHigh = false;
+        }
+        rigidBody.AddForce(jumpForce);
+        _jumpCooldown = true;
         IEnumerator endCooldownCoroutine() {
             yield return new WaitForSeconds(_jumpCooldownLength);
-            jumpCooldown = false;
+            _jumpCooldown = false;
         }
         StartCoroutine(endCooldownCoroutine());
     }
     
-    private bool IsGrounded() {
-        return Physics.Raycast(transform.position, -transform.up, _scale+0.01f);
-    }
     
     private Vector3 GetKeyboardInputVector() {
         Vector3 inputVector = new Vector3(0, 0, 0);

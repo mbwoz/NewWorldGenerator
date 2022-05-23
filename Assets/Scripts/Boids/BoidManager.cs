@@ -10,8 +10,8 @@ public class BoidManager : MonoBehaviour, IBoidObserver {
     private float _closeRadius = 3f;
     private float _viewRadius = 20f;
 
-    private float _repulsion = 1.5f;
-    private float _attraction = 1.5f;
+    private float _repulsion = 2.5f;
+    private float _attraction = 2f;
 
     private float _groupingWeight = 1f;
     private float _directionWeight = 3f;
