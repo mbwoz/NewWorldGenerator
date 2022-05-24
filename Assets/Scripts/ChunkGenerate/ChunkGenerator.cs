@@ -22,6 +22,7 @@ public class ChunkGenerator : MonoBehaviour {
     private ComputeBuffer triangulationBuffer;
 
     private Dictionary<Vector3Int, GameObject> activeCubes = new Dictionary<Vector3Int, GameObject>();
+    private Background background;
 
     private void Awake() {
         int numTriangles = size * size * size * 5;
@@ -39,6 +40,7 @@ public class ChunkGenerator : MonoBehaviour {
         Vector3Int currentChunk = GetCurrentChunk();
         RemoveDistantChunks(currentChunk);
         AddNearChunks(currentChunk);
+        UpdateBackground(currentChunk);
     }
 
     private void OnDisable() {
@@ -146,6 +148,18 @@ public class ChunkGenerator : MonoBehaviour {
             Destroy(activeCubes[chunk]);
             activeCubes.Remove(chunk);
         }
+    }
+
+    private void UpdateBackground(Vector3Int currentChunk) {
+        Vector3 position = ((Vector3)currentChunk - Vector3.one * numLayers) * size;
+
+        if (background == null) {
+            GameObject gameObject = new GameObject("Background");
+            background = gameObject.AddComponent(typeof(Background)) as Background;
+            background.SetUp(materialRef);
+        }
+
+        background.UpdateMesh(position, (2 * numLayers + 1) * size);
     }
 
     private int LayerOf(Vector3Int a, Vector3Int src) {
