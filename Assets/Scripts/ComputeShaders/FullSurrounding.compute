@@ -1,0 +1,26 @@
+#pragma kernel FullSurround
+
+#include "./Perlin.compute"
+
+static const int numThreads = 8;
+
+RWStructuredBuffer<int> surroundings;
+int size;
+float3 transition;
+
+[numthreads(numThreads, numThreads, numThreads)]
+void FullSurround(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= size || id.y >= size || id.z >= size)
+        return;
+    
+    int cubeID = id.x + size * id.y + size * size * id.z;
+    int mask = 0;
+    
+    for (int i = 0; i < 8; i++) {
+        float3 pos = float3((i & 1), ((i >> 1) & 1), (i >> 2));
+        pos += transition + id;
+        mask |= ((perlinDot(pos * dotsScale)) << i);
+    }
+
+    surroundings[cubeID] = mask;
+}
