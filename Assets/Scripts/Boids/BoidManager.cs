@@ -18,7 +18,7 @@ public class BoidManager : MonoBehaviour, IBoidObserver {
 
     // performance related constants
     private float _boxSize = 50f;
-    private int _boidsPerTarget = 500;
+    private int _boidsPerTarget = 100;
 
     // I can't believe I actually have to add this...
     private class Vector3Comparator : IComparer<Vector3Int> {

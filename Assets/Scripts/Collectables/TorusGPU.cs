@@ -9,7 +9,8 @@ public class TorusGPU : MonoBehaviour {
     [SerializeField] private ComputeShader compShader;
     [SerializeField] private Material material;
     [SerializeField] private Mesh mesh;
-
+    [SerializeField] private float renderDistance = 40f;
+    
     private readonly int
         posID = Shader.PropertyToID("_Positions"),
         resID = Shader.PropertyToID("_Resolution"),
@@ -19,9 +20,15 @@ public class TorusGPU : MonoBehaviour {
     
     private int numPts;
     private ComputeBuffer posBuf;
+    private Vector3[] computedPositions;
+    private Vector3 meshScale;
+    
     private void Awake() {
         compShader = Instantiate(compShader);
         numPts = resolution * resolution;
+        computedPositions = new Vector3[numPts];
+        float scale = 2f / resolution;
+        meshScale = new Vector3(scale, scale, scale);
     }
 
     private void OnEnable() {
@@ -33,7 +40,7 @@ public class TorusGPU : MonoBehaviour {
         posBuf = null;
     }
 
-    private void RunGPUKernel() {
+    public void RunGPUKernel(Collectable[] collectables, Vector3 playerPos) {
         float step = 2f / resolution;
         compShader.SetInt(resID, resolution);
         compShader.SetFloat(stepID, step);
@@ -45,11 +52,18 @@ public class TorusGPU : MonoBehaviour {
         material.SetFloat(stepID, step);
         compShader.Dispatch(0, groups, groups, 1);
         
-        Bounds bounds = new Bounds(transform.position, Vector3.one * (2f + 2f / resolution));
-        Graphics.DrawMeshInstancedProcedural(mesh, 0, material, bounds, posBuf.count, receiveShadows:false, castShadows:ShadowCastingMode.Off, lightProbeUsage:LightProbeUsage.Off);
-    }
-
-    private void Update() {
-        RunGPUKernel();
+        posBuf.GetData(computedPositions, 0, 0, numPts);
+        
+        foreach (Collectable col in collectables) {
+            // to save computation only render close collectables
+            if (Vector3.Distance(playerPos, col.transform.position) <= renderDistance) {
+                for (int i = 0; i < numPts; i++) {
+                    Graphics.DrawMesh(mesh,
+                        Matrix4x4.TRS(col.transform.position + computedPositions[i], Quaternion.identity, meshScale),
+                        material,
+                        0);
+                }
+            }
+        }
     }
 }
