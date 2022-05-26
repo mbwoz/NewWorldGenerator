@@ -1,28 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
-    private int collectablescnt = 1;
+    private int collectablescnt = 5;
     private int score = 0;
+    private TorusGPU collectableGraphics;
 
     private Collectable[] collectables;
+    private PlayerMovement player;
 
-    public GameObject collectiblePrefab;
     public ComputeShader surroundCS;
 
     void Start() {
+        collectableGraphics = GetComponent<TorusGPU>();
         collectables = new Collectable[collectablescnt];
         BoidManager boidManager = (BoidManager)FindObjectOfType(typeof(BoidManager));
         for (int i = 0; i < collectablescnt; i++) {
             GameObject gameObj = new GameObject("Collectable");
             Collectable collectable = gameObj.AddComponent(typeof(Collectable)) as Collectable;
-            collectable.SetUp(surroundCS, collectiblePrefab);
+            collectable.SetUp(surroundCS);
             collectable.AddObserver((ICollectableObserver)this);
             collectables[i] = collectable;
             boidManager.FollowObject(collectable);
         }
+        player = FindObjectOfType<PlayerMovement>();
     }
 
     public void Collected() {
@@ -52,5 +53,9 @@ public class CollectablesManager : MonoBehaviour, ICollectableObserver {
         for (int i = 0; i < collectablescnt; i++) {
             collectables[i].transform.position = positions[i];
         }
+    }
+
+    private void Update() {
+        collectableGraphics.RunGPUKernel(collectables, player.transform.position);
     }
 }

@@ -30,16 +30,11 @@ public class Collectable : MonoBehaviour {
         positionsBuffer.Release();
     }
 
-    public void SetUp(ComputeShader _surroundCS, GameObject prefab) {
+    public void SetUp(ComputeShader _surroundCS) {
         surroundCS = _surroundCS;
         kernelIndex = surroundCS.FindKernel("Surround");
 
         observers = new List<ICollectableObserver>();
-
-        GameObject body = Instantiate(prefab);
-        body.transform.position = transform.position;
-        body.transform.localScale = Vector3.one * prefabScale;
-        body.transform.SetParent(transform);
         
         sphereCollider = gameObject.GetComponent<SphereCollider>();
         if (sphereCollider == null)
