@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using ChunkGenerate;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ public class ChunkGenerator : MonoBehaviour {
 
     public Material materialRef;
     public ComputeShader cubeCS;
+    private DiamondGenerator diamondGen;
     private int kernelIndex;
     private ComputeBuffer trianglesBuffer;
     private ComputeBuffer trianglesCntBuffer;
@@ -34,6 +36,7 @@ public class ChunkGenerator : MonoBehaviour {
         cubeCS.SetInt("size", size);
         triangulationBuffer.SetData(MarchTable.triangulation);
         cubeCS.SetBuffer(kernelIndex, "triangulation", triangulationBuffer);
+        diamondGen = GetComponent<DiamondGenerator>();
     }
 
     private void Update() {
@@ -74,8 +77,10 @@ public class ChunkGenerator : MonoBehaviour {
                         currentChunk.z + dz
                     );
 
-                    if (!activeCubes.ContainsKey(pos))
+                    if (!activeCubes.ContainsKey(pos)) {
                         AddChunk(pos);
+                        diamondGen.Generate(pos);
+                    }
                 }
             }
         }
