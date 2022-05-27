@@ -63,7 +63,7 @@ namespace ChunkGenerate {
 
             Random.seed = hashFunc((int)pos.x, (int)pos.y, (int)pos.z);
 
-            int shots = 6 * size;
+            int shots = 4 * size;
 
             for (int i = 0; i < shots; i++) {
                 int shot = Random.Range(0, size * size * size);
@@ -82,28 +82,6 @@ namespace ChunkGenerate {
                     }
                 }
             }
-            
-            /*
-            for (int i = 0; i < size; i += 8) {
-                for (int j = 0; j < size; j += 8) {
-                    for (int k = 0; k < size; k += 8) {
-                        int idx = i + j * size + k * size * size;
-                        for (int l = 0; l < 6; l++) {
-                            if (masks[idx] == flatSurfMasks[l].mask) {
-                                
-                                    GameObject diam = Instantiate(
-                                        diamond,
-                                        pos + new Vector3(i, j, k) + new Vector3(0.5f, 0.5f, 0.5f),
-                                        Quaternion.LookRotation(flatSurfMasks[l].forward, flatSurfMasks[l].up),
-                                        parent.transform
-                                    );
-                            }
-                        }
-                    }
-                }  
-            }
-            */
         }
-        
     }
 }
