@@ -78,15 +78,15 @@ public class ChunkGenerator : MonoBehaviour {
                     );
 
                     if (!activeCubes.ContainsKey(pos)) {
-                        AddChunk(pos);
-                        diamondGen.Generate(pos);
+                        GameObject chunk = AddChunk(pos);
+                        diamondGen.Generate(chunk, pos);
                     }
                 }
             }
         }
     }
 
-    private void AddChunk(Vector3Int position) {
+    private GameObject AddChunk(Vector3Int position) {
         GameObject gameObj = new GameObject("Chunk");
         Chunk chunk = gameObj.AddComponent(typeof(Chunk)) as Chunk;
         chunk.SetUp(materialRef);
@@ -139,6 +139,7 @@ public class ChunkGenerator : MonoBehaviour {
 
         chunk.UpdateMesh(ref vertices, ref triangles, ref uvs);
         activeCubes.Add(position, gameObj);
+        return gameObj;
     }
 
     private void RemoveDistantChunks(Vector3Int currentChunk) {
