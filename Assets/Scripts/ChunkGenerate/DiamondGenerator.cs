@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace ChunkGenerate {
     public class DiamondGenerator : MonoBehaviour {
@@ -47,15 +48,42 @@ namespace ChunkGenerate {
             maskBuffer.Release();
         }
 
+        private int hashFunc(int x, int y, int z) {
+            return x + y * 13 + z * 31;
+        }
+
         public void Generate(GameObject parent, Vector3 pos) {
             pos *= size;
             surroundShader.SetInt("size", size);
             surroundShader.SetVector("transition", pos);
             surroundShader.SetBuffer(kernelIndex, "surroundings", maskBuffer);
-            surroundShader.Dispatch(kernelIndex, 4, 4, 4);
+            surroundShader.Dispatch(kernelIndex, 2, 2, 2);
             
             maskBuffer.GetData(masks, 0, 0, size * size * size);
 
+            Random.seed = hashFunc((int)pos.x, (int)pos.y, (int)pos.z);
+
+            int shots = 6 * size;
+
+            for (int i = 0; i < shots; i++) {
+                int shot = Random.Range(0, size * size * size);
+                for (int l = 0; l < 6; l++) {
+                    if (masks[shot] == flatSurfMasks[l].mask) {
+                        int x = shot % size;
+                        int y = (shot / size) % size;
+                        int z = (shot / size) / size;
+                        GameObject diam = Instantiate(
+                            diamond,
+                            pos + new Vector3(x, y, z) + new Vector3(0.5f, 0.5f, 0.5f),
+                            Quaternion.LookRotation(flatSurfMasks[l].forward, flatSurfMasks[l].up),
+                            parent.transform
+                        );
+                        masks[shot] = -1;
+                    }
+                }
+            }
+            
+            /*
             for (int i = 0; i < size; i += 8) {
                 for (int j = 0; j < size; j += 8) {
                     for (int k = 0; k < size; k += 8) {
@@ -72,8 +100,9 @@ namespace ChunkGenerate {
                             }
                         }
                     }
-                }
+                }  
             }
+            */
         }
         
     }

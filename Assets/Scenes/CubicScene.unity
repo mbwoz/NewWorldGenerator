@@ -265,7 +265,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &222526777
 GameObject:
@@ -298,7 +298,7 @@ Transform:
   - {fileID: 832447382}
   - {fileID: 1218759614}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &222526783
 MonoBehaviour:
@@ -505,7 +505,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surroundShader: {fileID: 7200000, guid: 1e301e4c49204d0e8e0eacacbe1c55bd, type: 3}
-  diamond: {fileID: 2864999238497896455, guid: c2a9c3c2bb11fd87f96affdd44e8d727, type: 3}
+  diamond: {fileID: 6742533659455485116, guid: bfd238c3c0956b098a95ee9fe3215555, type: 3}
 --- !u!20 &832447381
 Camera:
   m_ObjectHideFlags: 0
@@ -615,7 +615,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1218759613}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 222526781}
@@ -633,8 +633,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0.88694733, b: 0.740566, a: 1}
-  m_Intensity: 1
-  m_Range: 100
+  m_Intensity: 0.8
+  m_Range: 60
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -818,7 +818,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1949318309
 MonoBehaviour:
@@ -929,7 +929,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8458305823331498827, guid: 3e4a16f58418c771b86776f17c11e874, type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8458305823331498827, guid: 3e4a16f58418c771b86776f17c11e874, type: 3}
       propertyPath: m_LocalPosition.x
