@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
-    private int collectablescnt = 5;
+    private int collectablescnt = 1;
     private int score = 0;
     private TorusGPU collectableGraphics;
 
@@ -12,6 +12,7 @@ public class CollectablesManager : MonoBehaviour, ICollectableObserver {
     public ComputeShader surroundCS;
 
     void Start() {
+        ScoreOverlay.SetScore(score);
         collectableGraphics = GetComponent<TorusGPU>();
         collectables = new Collectable[collectablescnt];
         BoidManager boidManager = (BoidManager)FindObjectOfType(typeof(BoidManager));
@@ -27,8 +28,8 @@ public class CollectablesManager : MonoBehaviour, ICollectableObserver {
     }
 
     public void Collected() {
-        score++;
-        Debug.Log(score);
+        score += 10;
+        ScoreOverlay.SetScore(score);
     }
 
     public int GetScore() {
@@ -37,6 +38,7 @@ public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
     public void SetScore(int _score) {
         score = _score;
+        ScoreOverlay.SetScore(score);
     }
 
     public Vector3[] GetCollectables() {

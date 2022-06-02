@@ -8,7 +8,6 @@ public class Collectable : MonoBehaviour {
     private int range = 50;
     private int numThreads = 16;
 
-    private float prefabScale = 0.5f;
     private float colliderRadius = 1f;
 
     private SphereCollider sphereCollider;
