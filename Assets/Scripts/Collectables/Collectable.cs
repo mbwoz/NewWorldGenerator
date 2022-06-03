@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Collectable : MonoBehaviour {
 
-    private int distance = 50;
+    private int distance = 100;
     private int range = 50;
     private int numThreads = 16;
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CollectablesManager : MonoBehaviour, ICollectableObserver {
 
-    private int collectablescnt = 1;
+    private int collectablescnt = 5;
     private int score = 0;
     private TorusGPU collectableGraphics;
 

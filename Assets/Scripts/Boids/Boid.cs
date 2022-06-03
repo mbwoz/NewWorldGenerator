@@ -10,14 +10,14 @@ public class Boid : MonoBehaviour {
     // movement related constants
     private float _speed = 0.1f;
     private float _stubborness = 5f;
-    private float _conscientiousness = 1f;
+    private float _conscientiousness = 7f;
 
     // collision related constants
     private int _collisionPrecision = 30;
     private float _collisionSensitivity = 1f;
 
     // target related constant
-    private float _radius = 2f;
+    private float _radius = 1.2f;
 
     private BoidManager manager;
     public Vector3 friendsDirection { private get; set; }
@@ -28,9 +28,9 @@ public class Boid : MonoBehaviour {
 
     // respawning related constants
     // how far behind the player the boids spawn
-    private readonly int _behind = 40;
+    private readonly int _behind = 30;
     // what is considered far away from player
-    private readonly float _farAway = 50f;
+    private readonly float _farAway = 40f;
 
     // surrounding compute shader data
     private readonly int _surroundRange = 5;
@@ -84,7 +84,7 @@ public class Boid : MonoBehaviour {
         // too far away from player
         // player's probably an idiot and they're running away from the target
         // but we don't want the boids to become rarer and rarer as we move further away from the target
-        if ((transform.position - player.transform.position).sqrMagnitude > _farAway * _farAway) {
+        if (player != null && (transform.position - player.transform.position).sqrMagnitude > _farAway * _farAway) {
             return true;
         }
         return false;

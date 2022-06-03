@@ -35,12 +35,12 @@ namespace ExtensionMethods {
         public static IEnumerable<Vector3Int> SurroundingVectors(this Vector3Int vec) {
             // 3x3x3 cube without corners. corners don't matter that much and decrease performance
             yield return vec;
-            yield return vec + Vector3Int.back;
-            yield return vec + Vector3Int.forward;
-            yield return vec + Vector3Int.left;
-            yield return vec + Vector3Int.right;
-            yield return vec + Vector3Int.down;
-            yield return vec + Vector3Int.up;
+//             yield return vec + Vector3Int.back;
+//             yield return vec + Vector3Int.forward;
+//             yield return vec + Vector3Int.left;
+//             yield return vec + Vector3Int.right;
+//             yield return vec + Vector3Int.down;
+//             yield return vec + Vector3Int.up;
         }
     }
 }

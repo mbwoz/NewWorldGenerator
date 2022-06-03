@@ -7,18 +7,18 @@ using ExtensionMethods;
 
 public class BoidManager : MonoBehaviour, IBoidObserver {
     // grouping related constants
-    private float _closeRadius = 3f;
+    private float _closeRadius = 2f;
     private float _viewRadius = 20f;
 
-    private float _repulsion = 2.5f;
+    private float _repulsion = 3f;
     private float _attraction = 2f;
 
     private float _groupingWeight = 1f;
-    private float _directionWeight = 3f;
+    private float _directionWeight = 2f;
 
     // performance related constants
     private float _boxSize = 50f;
-    private int _boidsPerTarget = 100;
+    private int _boidsPerTarget = 200;
 
     // I can't believe I actually have to add this...
     private class Vector3Comparator : IComparer<Vector3Int> {
