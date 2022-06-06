@@ -505,7 +505,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surroundShader: {fileID: 7200000, guid: 1e301e4c49204d0e8e0eacacbe1c55bd, type: 3}
-  diamond: {fileID: 6742533659455485116, guid: bfd238c3c0956b098a95ee9fe3215555, type: 3}
+  diamond: {fileID: 3985196261561060416, guid: aebe82af92c8c97ff97a51cb6cf01606, type: 3}
 --- !u!20 &832447381
 Camera:
   m_ObjectHideFlags: 0
@@ -974,7 +974,7 @@ PrefabInstance:
     - target: {fileID: 8831055256650058480, guid: 3e4a16f58418c771b86776f17c11e874, type: 3}
       propertyPath: boid
       value: 
-      objectReference: {fileID: 3657333756988288008, guid: 70e230a1dfd2236f2aa946e43db5b9d7, type: 3}
+      objectReference: {fileID: 3189090001791220638, guid: 70e230a1dfd2236f2aa946e43db5b9d7, type: 3}
     - target: {fileID: 8831055256650058480, guid: 3e4a16f58418c771b86776f17c11e874, type: 3}
       propertyPath: surroundCS
       value: 
