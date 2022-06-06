@@ -6,10 +6,12 @@ public class SaveManager : MonoBehaviour {
 
     CollectablesManager collectablesManager;
     PlayerMovement playerMovement;
+    PopUpOverlay popUpOverlay;
 
     void Start() {
         collectablesManager = (CollectablesManager) FindObjectOfType(typeof(CollectablesManager));
         playerMovement = (PlayerMovement) FindObjectOfType(typeof(PlayerMovement));
+        popUpOverlay = (PopUpOverlay) FindObjectOfType(typeof(PopUpOverlay));
     }
 
     void Update() {
@@ -29,7 +31,7 @@ public class SaveManager : MonoBehaviour {
         data.SetPlayer(playerMovement.transform.position);
 
         SaveSystem.SaveGame(data);
-        Debug.Log("saved");
+        popUpOverlay.SetPopUp("SAVED");
     }
 
     private void load() {
@@ -39,6 +41,7 @@ public class SaveManager : MonoBehaviour {
         collectablesManager.SetScore(data.GetScore());
         collectablesManager.SetCollectables(data.GetCollectables());
         playerMovement.transform.position = data.GetPlayer();
-        Debug.Log("loaded");
+
+        popUpOverlay.SetPopUp("LOADED");
     }
 }
