@@ -505,7 +505,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   surroundShader: {fileID: 7200000, guid: 1e301e4c49204d0e8e0eacacbe1c55bd, type: 3}
-  diamond: {fileID: 2864999238497896455, guid: c2a9c3c2bb11fd87f96affdd44e8d727, type: 3}
+  diamond: {fileID: 8482535792564306146, guid: 18db349ad46dcde338e4337e0f417bcb, type: 3}
 --- !u!20 &832447381
 Camera:
   m_ObjectHideFlags: 0
